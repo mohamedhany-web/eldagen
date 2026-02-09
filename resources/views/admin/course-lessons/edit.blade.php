@@ -312,21 +312,31 @@
                     <div class="mt-6">
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">المرفقات الحالية</label>
                         <div class="space-y-2">
-                            @foreach($attachments as $attachment)
+                            @foreach($attachments as $index => $attachment)
                                 <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                                     <div class="flex items-center space-x-3 space-x-reverse">
                                         <i class="fas fa-file text-primary-600 dark:text-primary-400"></i>
                                         <div>
                                             <div class="font-medium text-gray-900 dark:text-white">{{ $attachment['name'] }}</div>
-                                            <div class="text-sm text-gray-500 dark:text-gray-400">{{ number_format($attachment['size'] / 1024, 2) }} KB</div>
+                                            <div class="text-sm text-gray-500 dark:text-gray-400">{{ number_format(($attachment['size'] ?? 0) / 1024, 2) }} KB</div>
                                         </div>
                                     </div>
-                                    <a href="{{ $attachment['path'] }}" 
-                                       target="_blank"
-                                       class="text-primary-600 hover:text-primary-700 font-medium">
-                                        <i class="fas fa-download ml-1"></i>
-                                        تحميل
-                                    </a>
+                                    <div class="flex items-center gap-2">
+                                        <a href="{{ storage_url($attachment['path'] ?? '') }}" 
+                                           target="_blank"
+                                           class="text-primary-600 hover:text-primary-700 font-medium">
+                                            <i class="fas fa-download ml-1"></i>
+                                            تحميل
+                                        </a>
+                                        <form action="{{ route('admin.courses.lessons.attachments.remove', [$course, $lesson]) }}" method="POST" class="inline" onsubmit="return confirm('حذف هذا المرفق؟');">
+                                            @csrf
+                                            <input type="hidden" name="index" value="{{ $index }}">
+                                            <button type="submit" class="text-red-600 hover:text-red-700 font-medium" title="حذف المرفق">
+                                                <i class="fas fa-trash ml-1"></i>
+                                                حذف
+                                            </button>
+                                        </form>
+                                    </div>
                                 </div>
                             @endforeach
                         </div>

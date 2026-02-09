@@ -39,11 +39,12 @@
                                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-colors" dir="ltr">
                         @error('phone')<p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                     </div>
-                    <div>
-                        <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">البريد الإلكتروني (اختياري)</label>
-                        <input type="email" name="email" id="email" value="{{ old('email') }}"
-                               class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-colors" dir="ltr">
-                        @error('email')<p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                    <div id="parent_phone_wrapper">
+                        <label for="parent_phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">جوال ولي الأمر <span id="parent_phone_required_mark" class="text-red-500 {{ old('role') === 'student' ? '' : 'hidden' }}">*</span></label>
+                        <input type="text" name="parent_phone" id="parent_phone" value="{{ old('parent_phone') }}" placeholder="01xxxxxxxx" dir="ltr"
+                               class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-colors">
+                        @error('parent_phone')<p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">إلزامي عند اختيار دور طالب — يبدأ بـ 01 و 11 رقماً</p>
                     </div>
                     <div>
                         <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">كلمة المرور <span class="text-red-500">*</span></label>
@@ -63,9 +64,7 @@
                         <select name="role" id="role" required class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-colors">
                             <option value="">اختر الدور</option>
                             <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>إداري</option>
-                            <option value="teacher" {{ old('role') == 'teacher' ? 'selected' : '' }}>مدرس</option>
                             <option value="student" {{ old('role') == 'student' ? 'selected' : '' }}>طالب</option>
-                            <option value="parent" {{ old('role') == 'parent' ? 'selected' : '' }}>ولي أمر</option>
                         </select>
                         @error('role')<p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                     </div>
@@ -82,9 +81,7 @@
                     <p class="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">وصف الأدوار:</p>
                     <ul class="text-xs text-gray-600 dark:text-gray-400 space-y-1">
                         <li><span class="font-medium text-gray-700 dark:text-gray-300">إداري:</span> صلاحيات كاملة أو مخصصة (اختر أدناه)</li>
-                        <li><span class="font-medium text-gray-700 dark:text-gray-300">مدرس:</span> إدارة الكورسات والامتحانات</li>
                         <li><span class="font-medium text-gray-700 dark:text-gray-300">طالب:</span> الكورسات والامتحانات</li>
-                        <li><span class="font-medium text-gray-700 dark:text-gray-300">ولي أمر:</span> متابعة الأبناء</li>
                     </ul>
                 </div>
             </div>
@@ -158,6 +155,8 @@ var roleSelect = document.getElementById('role');
 var permSection = document.getElementById('permissions-section');
 var permAll = document.getElementById('permissions_all');
 var permissionCbs = document.querySelectorAll('.permission-cb');
+var parentPhoneInput = document.getElementById('parent_phone');
+var parentPhoneRequiredMark = document.getElementById('parent_phone_required_mark');
 
 function togglePermissionsSection() {
     if (roleSelect.value === 'admin') {
@@ -166,8 +165,21 @@ function togglePermissionsSection() {
         permSection.classList.add('hidden');
     }
 }
-roleSelect.addEventListener('change', togglePermissionsSection);
+function toggleParentPhoneRequired() {
+    var isStudent = roleSelect.value === 'student';
+    parentPhoneInput.required = isStudent;
+    if (isStudent) {
+        parentPhoneRequiredMark.classList.remove('hidden');
+    } else {
+        parentPhoneRequiredMark.classList.add('hidden');
+    }
+}
+roleSelect.addEventListener('change', function() {
+    togglePermissionsSection();
+    toggleParentPhoneRequired();
+});
 togglePermissionsSection();
+toggleParentPhoneRequired();
 
 permAll.addEventListener('change', function() {
     permissionCbs.forEach(function(cb) {

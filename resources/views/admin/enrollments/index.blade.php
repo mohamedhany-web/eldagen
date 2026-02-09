@@ -169,19 +169,19 @@
                                         <i class="fas fa-user text-blue-600 dark:text-blue-400"></i>
                                     </div>
                                     <div class="mr-4">
-                                        <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $enrollment->student->name }}</div>
-                                        <div class="text-sm text-gray-500 dark:text-gray-400">{{ $enrollment->student->phone }}</div>
-                                        @if($enrollment->student->parent_phone)
+                                        <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $enrollment->student?->name ?? '—' }}</div>
+                                        <div class="text-sm text-gray-500 dark:text-gray-400">{{ $enrollment->student?->phone ?? '—' }}</div>
+                                        @if($enrollment->student?->parent_phone)
                                             <div class="text-xs text-gray-400 dark:text-gray-500">ولي الأمر: {{ $enrollment->student->parent_phone }}</div>
                                         @endif
                                     </div>
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $enrollment->course->title }}</div>
+                                <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $enrollment->course?->title ?? 'كورس محذوف' }}</div>
                                 <div class="text-sm text-gray-500 dark:text-gray-400">
-                                    {{ $enrollment->course->academicYear->name ?? 'غير محدد' }} - 
-                                    {{ $enrollment->course->academicSubject->name ?? 'غير محدد' }}
+                                    {{ $enrollment->course?->academicYear?->name ?? 'غير محدد' }} - 
+                                    {{ $enrollment->course?->academicSubject?->name ?? 'غير محدد' }}
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">

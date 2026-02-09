@@ -74,23 +74,6 @@
                     @enderror
                 </div>
 
-                <!-- المستوى -->
-                <div>
-                    <label for="level" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        المستوى <span class="text-red-500">*</span>
-                    </label>
-                    <select name="level" id="level" required
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
-                        <option value="">اختر المستوى</option>
-                        <option value="beginner" {{ old('level', $advancedCourse->level) == 'beginner' ? 'selected' : '' }}>مبتدئ</option>
-                        <option value="intermediate" {{ old('level', $advancedCourse->level) == 'intermediate' ? 'selected' : '' }}>متوسط</option>
-                        <option value="advanced" {{ old('level', $advancedCourse->level) == 'advanced' ? 'selected' : '' }}>متقدم</option>
-                    </select>
-                    @error('level')
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
-
                 <!-- السعر -->
                 <div>
                     <label for="price" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

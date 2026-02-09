@@ -38,7 +38,7 @@
             <div>
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $course->title }}</h3>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    {{ $course->academicYear->name ?? 'غير محدد' }} - {{ $course->academicSubject->name ?? 'غير محدد' }}
+                    {{ $course->academicYear?->name ?? 'غير محدد' }} - {{ $course->academicSubject?->name ?? 'غير محدد' }}
                 </p>
             </div>
             <div class="text-center">
@@ -47,6 +47,31 @@
             </div>
         </div>
     </div>
+
+    <!-- فلترة حسب القسم -->
+    @if($sections->count() > 0)
+    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+        <form method="GET" action="{{ route('admin.courses.lessons.index', $course) }}" class="flex flex-wrap items-center gap-3" id="section-filter-form">
+            <label for="section_id" class="text-sm font-medium text-gray-700 dark:text-gray-300">القسم:</label>
+            <select name="section_id" id="section_id" onchange="document.getElementById('section-filter-form').submit();"
+                    class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white min-w-[200px]">
+                <option value="">جميع الأقسام والدروس</option>
+                <option value="none" {{ request('section_id') === 'none' ? 'selected' : '' }}>بدون قسم</option>
+                @foreach($sections as $section)
+                    <option value="{{ $section->id }}" {{ request('section_id') == $section->id ? 'selected' : '' }}>
+                        {{ $section->title }}
+                    </option>
+                @endforeach
+            </select>
+            @if(request('section_id'))
+                <a href="{{ route('admin.courses.lessons.index', $course) }}" 
+                   class="text-sm text-gray-500 dark:text-gray-400 hover:text-primary-600">
+                    إلغاء الفلتر
+                </a>
+            @endif
+        </form>
+    </div>
+    @endif
 
     <!-- قائمة الدروس -->
     @if($lessons->count() > 0)
@@ -118,6 +143,17 @@
                                             @else واجب
                                             @endif
                                         </span>
+                                        @if($lesson->section)
+                                            <span class="flex items-center text-primary-600 dark:text-primary-400">
+                                                <i class="fas fa-folder ml-1"></i>
+                                                {{ $lesson->section->title }}
+                                            </span>
+                                        @else
+                                            <span class="flex items-center text-gray-400 dark:text-gray-500">
+                                                <i class="fas fa-folder-open ml-1"></i>
+                                                بدون قسم
+                                            </span>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -132,6 +168,10 @@
                                 <a href="{{ route('admin.courses.lessons.show', [$course, $lesson]) }}" 
                                    class="p-2 text-blue-600 hover:text-blue-800 transition-colors" title="عرض">
                                     <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ route('admin.courses.lessons.attachments.index', [$course, $lesson]) }}" 
+                                   class="p-2 text-amber-600 hover:text-amber-800 transition-colors" title="عرض المرفقات">
+                                    <i class="fas fa-paperclip"></i>
                                 </a>
                                 <a href="{{ route('admin.courses.lessons.edit', [$course, $lesson]) }}" 
                                    class="p-2 text-indigo-600 hover:text-indigo-800 transition-colors" title="تعديل">

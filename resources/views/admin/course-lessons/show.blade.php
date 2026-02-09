@@ -195,7 +195,7 @@
                                                 <div class="text-sm text-gray-500 dark:text-gray-400">{{ number_format($attachment['size'] / 1024, 2) }} KB</div>
                                             </div>
                                         </div>
-                                        <a href="{{ $attachment['path'] }}" 
+                                        <a href="{{ storage_url($attachment['path'] ?? '') }}" 
                                            target="_blank"
                                            class="text-primary-600 hover:text-primary-700 font-medium">
                                             <i class="fas fa-download ml-1"></i>

@@ -59,31 +59,21 @@
                             </div>
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">السنة الدراسية</label>
-                                <div class="text-gray-900 dark:text-white">{{ $advancedCourse->academicYear->name ?? 'غير محدد' }}</div>
+                                <div class="text-gray-900 dark:text-white">{{ $advancedCourse->academicYear?->name ?? 'غير محدد' }}</div>
                             </div>
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">المادة</label>
-                                <div class="text-gray-900 dark:text-white">{{ $advancedCourse->academicSubject->name ?? 'غير محدد' }}</div>
+                                <div class="text-gray-900 dark:text-white">{{ $advancedCourse->academicSubject?->name ?? 'غير محدد' }}</div>
                             </div>
                         </div>
                         <div>
-                            <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">المستوى</label>
-                                <div class="text-gray-900 dark:text-white">
-                                    @if($advancedCourse->level == 'beginner') مبتدئ
-                                    @elseif($advancedCourse->level == 'intermediate') متوسط
-                                    @elseif($advancedCourse->level == 'advanced') متقدم
-                                    @else غير محدد
-                                    @endif
-                                </div>
-                            </div>
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">السعر</label>
                                 <div class="text-gray-900 dark:text-white">{{ number_format($advancedCourse->price, 2) }} ج.م</div>
                             </div>
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">مدة الكورس</label>
-                                <div class="text-gray-900 dark:text-white">{{ $advancedCourse->duration_hours }} ساعة</div>
+                                <div class="text-gray-900 dark:text-white">{{ $advancedCourse->duration_hours ?? 0 }} ساعة</div>
                             </div>
                         </div>
                     </div>
@@ -153,9 +143,9 @@
     </div>
 
     <!-- تبويبات المحتوى -->
-    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700">
+    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700" x-data="{ activeTab: 'lessons' }">
         <div class="border-b border-gray-200 dark:border-gray-700">
-            <nav class="flex space-x-8 space-x-reverse px-6" x-data="{ activeTab: 'lessons' }">
+            <nav class="flex space-x-8 space-x-reverse px-6">
                 <button @click="activeTab = 'lessons'" 
                         :class="activeTab === 'lessons' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                         class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
@@ -288,12 +278,12 @@
                                             <div class="flex items-center">
                                                 <div class="w-10 h-10 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center">
                                                     <span class="text-primary-600 dark:text-primary-400 font-medium">
-                                                        {{ substr($enrollment->student->name, 0, 1) }}
+                                                        {{ $enrollment->student ? substr($enrollment->student->name, 0, 1) : '—' }}
                                                     </span>
                                                 </div>
                                                 <div class="mr-4">
-                                                    <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $enrollment->student->name }}</div>
-                                                    <div class="text-sm text-gray-500 dark:text-gray-400">{{ $enrollment->student->email }}</div>
+                                                    <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $enrollment->student?->name ?? '—' }}</div>
+                                                    <div class="text-sm text-gray-500 dark:text-gray-400">{{ $enrollment->student?->email ?? '—' }}</div>
                                                 </div>
                                             </div>
                                         </td>
@@ -354,11 +344,11 @@
                                 <div class="flex items-center space-x-4 space-x-reverse">
                                     <div class="w-10 h-10 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center">
                                         <span class="text-primary-600 dark:text-primary-400 font-medium">
-                                            {{ substr($order->user->name, 0, 1) }}
+                                            {{ $order->user ? substr($order->user->name, 0, 1) : '—' }}
                                         </span>
                                     </div>
                                     <div>
-                                        <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $order->user->name }}</p>
+                                        <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $order->user?->name ?? '—' }}</p>
                                         <p class="text-sm text-gray-500 dark:text-gray-400">{{ $order->created_at->diffForHumans() }}</p>
                                     </div>
                                 </div>

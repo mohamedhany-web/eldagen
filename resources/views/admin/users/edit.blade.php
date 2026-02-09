@@ -39,12 +39,6 @@
                     @error('phone')<p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                 </div>
                 <div>
-                    <label for="email" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">البريد الإلكتروني (اختياري)</label>
-                    <input type="email" name="email" id="email" value="{{ old('email', $user->email) }}"
-                           class="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#667eea] focus:border-[#667eea] transition-colors" dir="ltr">
-                    @error('email')<p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
-                </div>
-                <div>
                     <label for="password" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">كلمة مرور جديدة (اتركها فارغة للإبقاء على الحالية)</label>
                     <input type="password" name="password" id="password" minlength="8"
                            class="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#667eea] focus:border-[#667eea] transition-colors">
@@ -54,9 +48,7 @@
                     <label for="role" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">الدور <span class="text-red-500">*</span></label>
                     <select name="role" id="role" required class="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#667eea] focus:border-[#667eea] transition-colors">
                         <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>إداري</option>
-                        <option value="teacher" {{ old('role', $user->role) == 'teacher' ? 'selected' : '' }}>مدرس</option>
                         <option value="student" {{ old('role', $user->role) == 'student' ? 'selected' : '' }}>طالب</option>
-                        <option value="parent" {{ old('role', $user->role) == 'parent' ? 'selected' : '' }}>ولي أمر</option>
                     </select>
                     @error('role')<p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                 </div>

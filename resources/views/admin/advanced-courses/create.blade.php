@@ -90,17 +90,6 @@
                             @enderror
                         </div>
 
-                        <!-- المستوى -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">مستوى الكورس</label>
-                            <select name="level" 
-                                    class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
-                                <option value="beginner" {{ old('level', 'beginner') == 'beginner' ? 'selected' : '' }}>مبتدئ</option>
-                                <option value="intermediate" {{ old('level') == 'intermediate' ? 'selected' : '' }}>متوسط</option>
-                                <option value="advanced" {{ old('level') == 'advanced' ? 'selected' : '' }}>متقدم</option>
-                            </select>
-                        </div>
-
                         <!-- السعر -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">السعر (جنيه مصري)</label>

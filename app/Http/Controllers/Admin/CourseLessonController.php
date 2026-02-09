@@ -11,13 +11,37 @@ use Illuminate\Support\Facades\Storage;
 class CourseLessonController extends Controller
 {
     /**
-     * عرض دروس الكورس
+     * استخراج مسار الملف تحت القرص public من قيمة path (نسبي أو URL قديم)
      */
-    public function index(AdvancedCourse $course)
+    private function attachmentStoragePath(array $attachment): string
     {
-        $lessons = $course->lessons()->ordered()->get();
-        
-        return view('admin.course-lessons.index', compact('course', 'lessons'));
+        $path = $attachment['path'] ?? '';
+        if (str_contains($path, '/storage/')) {
+            return (string) preg_replace('#.*/storage/#', '', $path);
+        }
+        return ltrim(str_replace('\\', '/', $path), '/');
+    }
+
+    /**
+     * عرض دروس الكورس مع فلترة حسب القسم
+     */
+    public function index(Request $request, AdvancedCourse $course)
+    {
+        $sections = $course->sections()->ordered()->get();
+
+        $query = $course->lessons()->with('section')->ordered();
+
+        if ($request->filled('section_id')) {
+            if ($request->section_id === 'none') {
+                $query->whereNull('course_section_id');
+            } else {
+                $query->where('course_section_id', $request->section_id);
+            }
+        }
+
+        $lessons = $query->get();
+
+        return view('admin.course-lessons.index', compact('course', 'lessons', 'sections'));
     }
 
     /**
@@ -88,14 +112,14 @@ class CourseLessonController extends Controller
             }
         }
 
-        // رفع المرفقات
+        // رفع المرفقات (المسار نسبي لتسهيل الحذف والعرض)
         if ($request->hasFile('attachments')) {
             $attachments = [];
             foreach ($request->file('attachments') as $file) {
                 $path = $file->store('course-attachments', 'public');
                 $attachments[] = [
                     'name' => $file->getClientOriginalName(),
-                    'path' => Storage::url($path),
+                    'path' => $path,
                     'size' => $file->getSize(),
                     'type' => $file->getMimeType(),
                 ];
@@ -177,19 +201,19 @@ class CourseLessonController extends Controller
             }
         }
 
-        // رفع المرفقات الجديدة
+        // دمج المرفقات الجديدة مع الحالية (المسار نسبي)
         if ($request->hasFile('attachments')) {
-            $attachments = [];
+            $currentAttachments = $lesson->getAttachmentsArray();
             foreach ($request->file('attachments') as $file) {
                 $path = $file->store('course-attachments', 'public');
-                $attachments[] = [
+                $currentAttachments[] = [
                     'name' => $file->getClientOriginalName(),
-                    'path' => Storage::url($path),
+                    'path' => $path,
                     'size' => $file->getSize(),
                     'type' => $file->getMimeType(),
                 ];
             }
-            $data['attachments'] = json_encode($attachments);
+            $data['attachments'] = json_encode($currentAttachments);
         }
 
         $lesson->update($data);
@@ -216,12 +240,13 @@ class CourseLessonController extends Controller
      */
     public function destroy(AdvancedCourse $course, CourseLesson $lesson)
     {
-        // حذف المرفقات فقط (الفيديوهات روابط خارجية)
+        // حذف المرفقات من التخزين
         if ($lesson->attachments) {
             $attachments = json_decode($lesson->attachments, true);
             foreach ($attachments as $attachment) {
-                if (Storage::disk('public')->exists(str_replace('/storage/', '', $attachment['path']))) {
-                    Storage::disk('public')->delete(str_replace('/storage/', '', $attachment['path']));
+                $storagePath = $this->attachmentStoragePath($attachment);
+                if ($storagePath && Storage::disk('public')->exists($storagePath)) {
+                    Storage::disk('public')->delete($storagePath);
                 }
             }
         }
@@ -233,6 +258,35 @@ class CourseLessonController extends Controller
 
         return redirect()->route('admin.courses.lessons.index', $course)
             ->with('success', 'تم حذف الدرس بنجاح');
+    }
+
+    /**
+     * حذف مرفق واحد من درس
+     */
+    public function removeAttachment(Request $request, AdvancedCourse $course, CourseLesson $lesson)
+    {
+        $request->validate(['index' => 'required|integer|min:0']);
+        $index = (int) $request->input('index');
+        $attachments = $lesson->getAttachmentsArray();
+        if (!isset($attachments[$index])) {
+            return back()->with('error', 'المرفق غير موجود.');
+        }
+        $attachment = $attachments[$index];
+        $storagePath = $this->attachmentStoragePath($attachment);
+        if ($storagePath && Storage::disk('public')->exists($storagePath)) {
+            Storage::disk('public')->delete($storagePath);
+        }
+        array_splice($attachments, $index, 1);
+        $lesson->update(['attachments' => count($attachments) ? json_encode($attachments) : null]);
+        return back()->with('success', 'تم حذف المرفق.');
+    }
+
+    /**
+     * صفحة عرض مرفقات الدرس فقط (مع زر التعديل)
+     */
+    public function attachments(AdvancedCourse $course, CourseLesson $lesson)
+    {
+        return view('admin.course-lessons.attachments', compact('course', 'lesson'));
     }
 
     /**

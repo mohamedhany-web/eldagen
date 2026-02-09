@@ -88,16 +88,22 @@ class AdminController extends Controller
      */
     public function storeUser(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $rules = [
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|unique:users,email',
             'phone' => 'required|string|unique:users,phone',
             'password' => 'required|string|min:8',
-            'role' => 'required|in:admin,teacher,student,parent',
+            'role' => 'required|in:admin,student',
             'is_active' => 'required|boolean',
             'permissions' => 'nullable|array',
             'permissions.*' => 'string',
-        ], [
+        ];
+        if ($request->role === 'student') {
+            $rules['parent_phone'] = 'required|string|regex:/^01[0-9]{9}$/';
+        } else {
+            $rules['parent_phone'] = 'nullable|string|regex:/^01[0-9]{9}$/';
+        }
+        $validator = Validator::make($request->all(), $rules, [
             'name.required' => 'الاسم مطلوب',
             'phone.required' => 'رقم الهاتف مطلوب',
             'phone.unique' => 'رقم الهاتف مستخدم مسبقاً',
@@ -105,6 +111,8 @@ class AdminController extends Controller
             'password.required' => 'كلمة المرور مطلوبة',
             'password.min' => 'كلمة المرور يجب أن تكون 8 أحرف على الأقل',
             'role.required' => 'الدور مطلوب',
+            'parent_phone.required' => 'جوال ولي الأمر إلزامي للطالب',
+            'parent_phone.regex' => 'جوال ولي الأمر يجب أن يبدأ بـ 01 ويتكون من 11 رقماً',
         ]);
 
         if ($validator->fails()) {
@@ -119,6 +127,9 @@ class AdminController extends Controller
             'role' => $request->role,
             'is_active' => $request->is_active,
         ];
+        if ($request->filled('parent_phone')) {
+            $data['parent_phone'] = $request->parent_phone;
+        }
         if ($request->role === 'admin') {
             $allowed = array_merge(
                 array_keys(config('permissions.admin.إدارة النظام', [])),
@@ -166,7 +177,7 @@ class AdminController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|unique:users,email,' . $id,
             'phone' => 'required|string|unique:users,phone,' . $id,
-            'role' => 'required|in:admin,teacher,student,parent',
+            'role' => 'required|in:admin,student',
             'is_active' => 'required|boolean',
         ]);
 
@@ -176,11 +187,13 @@ class AdminController extends Controller
 
         $updateData = [
             'name' => $request->name,
-            'email' => $request->email,
             'phone' => $request->phone,
             'role' => $request->role,
             'is_active' => $request->is_active,
         ];
+        if ($request->has('email')) {
+            $updateData['email'] = $request->email ?: null;
+        }
         if ($request->role === 'admin') {
             $allowed = array_merge(
                 array_keys(config('permissions.admin.إدارة النظام', [])),

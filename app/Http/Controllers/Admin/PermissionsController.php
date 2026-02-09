@@ -38,7 +38,7 @@ class PermissionsController extends Controller
     public function update(Request $request, User $user)
     {
         $request->validate([
-            'role' => 'required|in:admin,student,teacher,parent',
+            'role' => 'required|in:admin,student',
             'is_active' => 'nullable|boolean',
         ]);
 

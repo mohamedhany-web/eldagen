@@ -141,6 +141,12 @@ Route::get('/', function () {
 Route::get('/catalog', [\App\Http\Controllers\CatalogController::class, 'index'])->name('catalog.index');
 Route::get('/catalog/{advancedCourse}', [\App\Http\Controllers\CatalogController::class, 'show'])->name('catalog.show');
 
+// صفحة تقارير ولي الأمر (خارجية - بإدخال رقم الجوال المرتبط بالأبناء)
+Route::get('/parent-report', [\App\Http\Controllers\ParentReportController::class, 'index'])->name('parent-report.index');
+Route::post('/parent-report', [\App\Http\Controllers\ParentReportController::class, 'submit'])->name('parent-report.submit')->middleware('throttle:10,1');
+Route::get('/parent-report/exit', [\App\Http\Controllers\ParentReportController::class, 'clearSession'])->name('parent-report.exit');
+Route::get('/parent-report/pdf', [\App\Http\Controllers\ParentReportController::class, 'downloadPdf'])->name('parent-report.pdf');
+
 // الرابط الثابت للأدمن أثناء الصيانة: من يمتلكه فقط يمكنه فتح صفحة تسجيل الدخول (بدون توكن)
 // المسار يُسجّل كاملًا ليعمل من مجلد فرعي (مثلاً /eldagen/maint-admin-secure)
 $bypassPath = trim(config('maintenance.bypass_path', 'maint-admin-secure'), '/');
@@ -326,9 +332,11 @@ Route::middleware('auth')->group(function () {
             Route::get('/create', [\App\Http\Controllers\Admin\CourseLessonController::class, 'create'])->name('create');
             Route::post('/', [\App\Http\Controllers\Admin\CourseLessonController::class, 'store'])->name('store');
             Route::get('/{lesson}', [\App\Http\Controllers\Admin\CourseLessonController::class, 'show'])->name('show');
+            Route::get('/{lesson}/attachments', [\App\Http\Controllers\Admin\CourseLessonController::class, 'attachments'])->name('attachments.index');
             Route::get('/{lesson}/edit', [\App\Http\Controllers\Admin\CourseLessonController::class, 'edit'])->name('edit');
             Route::put('/{lesson}', [\App\Http\Controllers\Admin\CourseLessonController::class, 'update'])->name('update');
             Route::delete('/{lesson}', [\App\Http\Controllers\Admin\CourseLessonController::class, 'destroy'])->name('destroy');
+            Route::post('/{lesson}/attachments/remove', [\App\Http\Controllers\Admin\CourseLessonController::class, 'removeAttachment'])->name('attachments.remove');
             Route::post('/{lesson}/toggle-status', [\App\Http\Controllers\Admin\CourseLessonController::class, 'toggleStatus'])->name('toggle-status');
             Route::post('/reorder', [\App\Http\Controllers\Admin\CourseLessonController::class, 'reorder'])->name('reorder');
             // أسئلة الفيديو (عند دقيقة معينة)

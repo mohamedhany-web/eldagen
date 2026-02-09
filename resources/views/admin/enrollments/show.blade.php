@@ -44,14 +44,14 @@
                         <div>
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">الطالب</label>
-                                <div class="font-semibold text-gray-900 dark:text-white">{{ $enrollment->student->name }}</div>
-                                <div class="text-sm text-gray-500 dark:text-gray-400">{{ $enrollment->student->email }}</div>
+                                <div class="font-semibold text-gray-900 dark:text-white">{{ $enrollment->student?->name ?? '—' }}</div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">{{ $enrollment->student?->email ?? '—' }}</div>
                             </div>
                         </div>
                         <div>
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">رقم الهاتف</label>
-                                <div class="text-gray-900 dark:text-white">{{ $enrollment->student->phone ?? 'غير محدد' }}</div>
+                                <div class="text-gray-900 dark:text-white">{{ $enrollment->student?->phone ?? 'غير محدد' }}</div>
                             </div>
                         </div>
                     </div>
@@ -60,10 +60,10 @@
                         <div>
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">الكورس</label>
-                                <div class="font-semibold text-gray-900 dark:text-white">{{ $enrollment->course->title }}</div>
+                                <div class="font-semibold text-gray-900 dark:text-white">{{ $enrollment->course?->title ?? 'كورس محذوف' }}</div>
                                 <div class="text-sm text-gray-500 dark:text-gray-400">
-                                    {{ $enrollment->course->academicYear->name ?? 'غير محدد' }} - 
-                                    {{ $enrollment->course->academicSubject->name ?? 'غير محدد' }}
+                                    {{ $enrollment->course?->academicYear?->name ?? 'غير محدد' }} - 
+                                    {{ $enrollment->course?->academicSubject?->name ?? 'غير محدد' }}
                                 </div>
                             </div>
                         </div>
@@ -170,6 +170,7 @@
             </div>
 
             <!-- إحصائيات الكورس -->
+            @if($enrollment->course)
             <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700">
                 <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                     <h4 class="text-lg font-semibold text-gray-900 dark:text-white">إحصائيات الكورس</h4>
@@ -181,7 +182,7 @@
                             <div class="text-sm text-gray-500 dark:text-gray-400">دروس</div>
                         </div>
                         <div class="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                            <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ $enrollment->course->duration_hours }}</div>
+                            <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ $enrollment->course->duration_hours ?? 0 }}</div>
                             <div class="text-sm text-gray-500 dark:text-gray-400">ساعة</div>
                         </div>
                     </div>
@@ -193,6 +194,7 @@
                     </div>
                 </div>
             </div>
+            @endif
         </div>
     </div>
 </div>

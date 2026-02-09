@@ -79,6 +79,8 @@ class AcademicYearController extends Controller
             'description' => 'nullable|string',
             'order' => 'nullable|integer|min:0',
             'is_active' => 'boolean',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
         ], [
             'name.required' => 'اسم السنة الدراسية مطلوب',
             'name.unique' => 'اسم السنة الدراسية موجود مسبقاً',
@@ -86,9 +88,15 @@ class AcademicYearController extends Controller
             'code.unique' => 'رمز السنة الدراسية موجود مسبقاً',
         ]);
 
-        $data = $request->all();
+        $data = $request->only($academicYear->getFillable());
         $data['is_active'] = $request->has('is_active');
-        $data['order'] = $data['order'] ?? 0;
+        $data['order'] = (int) ($data['order'] ?? $academicYear->order ?? 0);
+        if (isset($data['start_date']) && $data['start_date'] === '') {
+            $data['start_date'] = $academicYear->start_date ?? now()->startOfYear()->format('Y-m-d');
+        }
+        if (isset($data['end_date']) && $data['end_date'] === '') {
+            $data['end_date'] = $academicYear->end_date ?? now()->endOfYear()->format('Y-m-d');
+        }
 
         $academicYear->update($data);
         Cache::forget('home_academic_years');

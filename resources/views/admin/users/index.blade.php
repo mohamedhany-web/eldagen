@@ -32,9 +32,7 @@
                     <select name="role" class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-colors">
                         <option value="">جميع الأدوار</option>
                         <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>إداري</option>
-                        <option value="teacher" {{ request('role') == 'teacher' ? 'selected' : '' }}>مدرس</option>
                         <option value="student" {{ request('role') == 'student' ? 'selected' : '' }}>طالب</option>
-                        <option value="parent" {{ request('role') == 'parent' ? 'selected' : '' }}>ولي أمر</option>
                     </select>
                 </div>
                 <div>
@@ -112,7 +110,13 @@
                             {{ $user->created_at->format('Y-m-d') }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center gap-2 justify-end">
+                            <div class="flex items-center gap-2 justify-end flex-wrap">
+                                @if($user->role === 'student')
+                                <a href="{{ route('admin.messages.student', $user) }}" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-900/50 transition-colors">
+                                    <i class="fas fa-chart-line"></i>
+                                    عرض تفاصيل الطالب
+                                </a>
+                                @endif
                                 <a href="{{ route('admin.users.edit', $user->id) }}" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors">
                                     <i class="fas fa-edit"></i>
                                     تعديل

@@ -143,6 +143,10 @@
                         <span class="relative z-10">المميزات</span>
                         <div class="absolute inset-0 bg-white/5 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300"></div>
                     </a>
+                    <a href="{{ route('parent-report.index') }}" class="relative {{ request()->routeIs('parent-report.*') ? 'text-white font-bold' : 'text-white/80 hover:text-white' }} font-medium text-lg nav-link group transition-all duration-300">
+                        <span class="relative z-10">تقارير ولي الأمر</span>
+                        <div class="absolute inset-0 bg-white/5 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300"></div>
+                    </a>
                 </div>
 
                 <div class="hidden lg:flex items-center space-x-4 space-x-reverse">
@@ -189,6 +193,10 @@
                 <a href="{{ url('/#features') }}" class="block text-gray-700 font-medium text-lg py-3 border-b border-gray-200 hover:text-blue-600 transition-colors">
                     <i class="fas fa-star ml-3 text-orange-500"></i>
                     المميزات
+                </a>
+                <a href="{{ route('parent-report.index') }}" class="block text-gray-700 font-medium text-lg py-3 border-b border-gray-200 hover:text-blue-600 transition-colors">
+                    <i class="fas fa-user-friends ml-3 text-indigo-500"></i>
+                    تقارير ولي الأمر
                 </a>
                 @auth
                     <a href="{{ url('/dashboard') }}" class="btn-primary w-full justify-center bg-gradient-to-r from-green-500 to-teal-500 mt-4">
