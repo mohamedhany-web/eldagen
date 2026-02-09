@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563EB"/>
+      <stop offset="100%" stop-color="#7C3AED"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#g)"/>
+  <!-- Book / learning icon - open book -->
+  <path fill="white" fill-opacity="0.95" d="M18 20h8v24h-8c-2.2 0-4-1.8-4-4V24c0-2.2 1.8-4 4-4zm28 0c2.2 0 4 1.8 4 4v16c0 2.2-1.8 4-4 4h-8V20h8zM20 24v16h4V24h-4zm20 0v16h4V24h-4z"/>
+  <path fill="white" fill-opacity="0.7" d="M32 22c-1.5 0-2.5 1.2-2.5 2.5s1 2.5 2.5 2.5 2.5-1.2 2.5-2.5S33.5 22 32 22z"/>
+</svg>
