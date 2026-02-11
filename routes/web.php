@@ -12,9 +12,51 @@ use App\Http\Controllers\DashboardController;
 | يجب أن يكون هذا الـ Route في بداية الملف لتفادي تداخل Laravel مع storage.local.
 | config/filesystems.php: local disk يجب أن يكون فيه 'serve' => false.
 | لا تضف في .htaccess قواعد تسمح بالوصول المباشر لـ /storage/ وتتخطى index.php.
+| عند تشغيل التطبيق من مجلد فرعي (مثلاً /eldagen) نُسجّل المسار مع البادئة لتفادي 404.
 */
-Route::get('/storage/{path}', function ($path) {
+$storageRoutePrefix = app_base_path() ? (app_base_path() . '/') : '';
+
+// نفس منطق تقديم الملفات (تُستدعى من مسارين: مع البادئة وبدونها)
+$serveStorageFile = function ($pathOrFilename, $isCourseAttachment = false) {
+    $path = $isCourseAttachment ? ('course-attachments/' . $pathOrFilename) : $pathOrFilename;
+    $path = rawurldecode($path);
+    $path = str_replace('..', '', $path);
+    $path = ltrim($path, '/');
+    $basePath = storage_path('app/public');
+    $basePath = rtrim(str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $basePath), DIRECTORY_SEPARATOR);
+    $pathNormalized = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
+    $filePath = $basePath . DIRECTORY_SEPARATOR . $pathNormalized;
+    if (!@is_file($filePath) || !@is_readable($filePath)) {
+        abort(404, 'File not found');
+    }
+    $mimeType = @mime_content_type($filePath) ?: 'application/octet-stream';
+    $downloadName = basename($filePath);
+    $headers = [
+        'Content-Type' => $mimeType,
+        'Cache-Control' => 'public, max-age=31536000',
+        'Content-Disposition' => ($isCourseAttachment ? 'attachment' : 'inline') . '; filename="' . $downloadName . '"',
+    ];
+    return response()->file($filePath, $headers);
+};
+
+// مسار مرفقات الدروس — يُسجّل دائماً بدون بادئة (لعمل artisan serve و 127.0.0.1:8000) ثم مع البادئة إن وُجدت
+Route::get('storage/course-attachments/{filename}', function ($filename) use ($serveStorageFile) {
+    return $serveStorageFile($filename, true);
+})->where('filename', '[a-zA-Z0-9._\-]+')->name('storage.course-attachment')->middleware('web');
+if ($storageRoutePrefix !== '') {
+    Route::get($storageRoutePrefix . 'storage/course-attachments/{filename}', function ($filename) use ($serveStorageFile) {
+        return $serveStorageFile($filename, true);
+    })->where('filename', '[a-zA-Z0-9._\-]+')->middleware('web');
+}
+
+Route::get('storage/{path}', function ($path) {
     try {
+        // استخراج المسار الكامل من الطلب (لتفادي أن يقتصر {path} على segment واحد في بعض إعدادات Laravel)
+        $requestPath = request_path_without_base(request()->path());
+        $storagePrefix = 'storage/';
+        if (str_starts_with($requestPath, $storagePrefix)) {
+            $path = substr($requestPath, strlen($storagePrefix));
+        }
         $path = rawurldecode($path);
         $path = str_replace('..', '', $path);
         $path = ltrim($path, '/');
@@ -94,7 +136,46 @@ Route::get('/storage/{path}', function ($path) {
         ]);
         abort(404, 'File not found');
     }
-})->where('path', '.*')->name('storage.file')->middleware('web');
+})->where('path', '(.*)')->name('storage.file')->middleware('web');
+if ($storageRoutePrefix !== '') {
+    Route::get($storageRoutePrefix . 'storage/{path}', function ($path) {
+        $requestPath = request_path_without_base(request()->path());
+        $storagePrefix = 'storage/';
+        if (str_starts_with($requestPath, $storagePrefix)) {
+            $path = substr($requestPath, strlen($storagePrefix));
+        }
+        $path = rawurldecode($path);
+        $path = str_replace('..', '', $path);
+        $path = ltrim($path, '/');
+        $basePath = storage_path('app/public');
+        $basePath = rtrim(str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $basePath), DIRECTORY_SEPARATOR);
+        if (!@is_dir($basePath)) {
+            abort(404, 'File not found');
+        }
+        $pathNormalized = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
+        $filePath = $basePath . DIRECTORY_SEPARATOR . $pathNormalized;
+        if (!@file_exists($filePath) || !@is_file($filePath) || !@is_readable($filePath)) {
+            abort(404, 'File not found');
+        }
+        $filePathReal = @realpath($filePath) ?: $filePath;
+        $basePathReal = @realpath($basePath) ?: $basePath;
+        $sep = DIRECTORY_SEPARATOR;
+        $baseNorm = rtrim(str_replace(['/', '\\'], $sep, $basePathReal), $sep);
+        $fileNorm = str_replace(['/', '\\'], $sep, $filePathReal);
+        if ($baseNorm !== $fileNorm && strpos($fileNorm, $baseNorm . $sep) !== 0) {
+            abort(404, 'Access denied');
+        }
+        $mimeType = @mime_content_type($filePathReal) ?: 'application/octet-stream';
+        $headers = [
+            'Content-Type' => $mimeType,
+            'Cache-Control' => 'public, max-age=31536000',
+        ];
+        if ($mimeType === 'application/pdf') {
+            $headers['Content-Disposition'] = 'inline; filename="' . basename($filePathReal) . '"';
+        }
+        return response()->file($filePathReal, $headers);
+    })->where('path', '(.*)')->middleware('web');
+}
 
 // SEO: خريطة الموقع وملف robots
 Route::get('/sitemap.xml', function () {
@@ -418,6 +499,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/activation-codes', [\App\Http\Controllers\Admin\ActivationCodeController::class, 'index'])->name('activation-codes.index');
         Route::post('/activation-codes', [\App\Http\Controllers\Admin\ActivationCodeController::class, 'store'])->name('activation-codes.store');
         Route::get('/activation-codes/export', [\App\Http\Controllers\Admin\ActivationCodeController::class, 'export'])->name('activation-codes.export');
+        Route::get('/activation-codes/course/{advancedCourse}', [\App\Http\Controllers\Admin\ActivationCodeController::class, 'show'])->name('activation-codes.show');
+        Route::get('/activation-codes/course/{advancedCourse}/export', [\App\Http\Controllers\Admin\ActivationCodeController::class, 'exportForCourse'])->name('activation-codes.export-course');
 
         // إدارة الطلبات
         Route::get('/orders', [\App\Http\Controllers\Admin\OrderController::class, 'index'])->name('orders.index');

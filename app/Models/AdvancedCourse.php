@@ -89,6 +89,14 @@ class AdvancedCourse extends Model
     }
 
     /**
+     * أكواد التفعيل الخاصة بهذا الكورس
+     */
+    public function activationCodes()
+    {
+        return $this->hasMany(CourseActivationCode::class, 'advanced_course_id');
+    }
+
+    /**
      * علاقة مع الطلاب المسجلين
      */
     public function enrolledStudents()

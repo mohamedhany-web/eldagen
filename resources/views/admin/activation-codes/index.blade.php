@@ -11,17 +11,7 @@
         </div>
     @endif
 
-    <!-- شريط التصدير -->
-    <div class="flex flex-wrap items-center justify-between gap-4">
-        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">قائمة أكواد التفعيل</h2>
-        <a href="{{ route('admin.activation-codes.export', request()->only(['course', 'status', 'search'])) }}"
-           class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-emerald-500/25">
-            <i class="fas fa-file-excel"></i>
-            تحميل Excel
-        </a>
-    </div>
-
-    <!-- إحصائيات -->
+    <!-- إحصائيات عامة -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
             <div class="flex items-center justify-between">
@@ -64,7 +54,7 @@
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">الكورس</label>
                     <select name="advanced_course_id" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white">
                         <option value="">اختر الكورس</option>
-                        @foreach($courses as $c)
+                        @foreach($allCourses as $c)
                             <option value="{{ $c->id }}" {{ old('advanced_course_id') == $c->id ? 'selected' : '' }}>{{ $c->title }}</option>
                         @endforeach
                     </select>
@@ -84,118 +74,57 @@
         </div>
     </div>
 
-    <!-- فلترة وقائمة الأكواد -->
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
-            <div class="p-6 border-b border-gray-200 dark:border-gray-700">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">فلترة</h3>
-            </div>
-            <div class="p-6">
-                <form method="GET" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">الكورس</label>
-                        <select name="course" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white">
-                            <option value="">جميع الكورسات</option>
-                            @foreach($courses as $c)
-                                <option value="{{ $c->id }}" {{ request('course') == $c->id ? 'selected' : '' }}>{{ Str::limit($c->title, 30) }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">الحالة</label>
-                        <select name="status" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white">
-                            <option value="">الكل</option>
-                            <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>متاحة</option>
-                            <option value="used" {{ request('status') == 'used' ? 'selected' : '' }}>مستخدمة</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">بحث (كود أو طالب)</label>
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="كود أو اسم طالب..."
-                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white">
-                    </div>
-                    <button type="submit" class="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
-                        <i class="fas fa-search ml-2"></i>
-                        بحث
-                    </button>
-                </form>
-            </div>
+    <!-- قائمة الكورسات التي لها أكواد -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+        <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">الكورسات وأكواد التفعيل</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">اختر كورساً للدخول إلى صفحته وعرض الأكواد أو تحميلها Excel</p>
         </div>
-
-        <div class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex flex-wrap justify-between items-center gap-3">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">قائمة الأكواد</h3>
-                <div class="flex items-center gap-3">
-                    <span class="text-sm text-gray-500 dark:text-gray-400">{{ $codes->total() }} كود</span>
-                    <a href="{{ route('admin.activation-codes.export', request()->only(['course', 'status', 'search'])) }}"
-                       class="inline-flex items-center gap-2 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition-colors">
-                        <i class="fas fa-file-excel"></i>
-                        Excel
-                    </a>
+        <div class="p-6">
+            @if($coursesWithCodes->count() > 0)
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    @foreach($coursesWithCodes as $c)
+                        <div class="border border-gray-200 dark:border-gray-600 rounded-xl p-5 hover:border-indigo-400 dark:hover:border-indigo-500 transition-colors bg-gray-50/50 dark:bg-gray-700/30">
+                            <h4 class="font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2">{{ $c->title }}</h4>
+                            <div class="flex flex-wrap gap-3 text-sm mb-4">
+                                <span class="text-gray-600 dark:text-gray-400">
+                                    <i class="fas fa-ticket-alt ml-1"></i>
+                                    {{ number_format($c->activation_codes_count ?? 0) }} إجمالي
+                                </span>
+                                <span class="text-green-600 dark:text-green-400">
+                                    <i class="fas fa-check-circle ml-1"></i>
+                                    {{ number_format($c->active_codes_count ?? 0) }} متاحة
+                                </span>
+                                <span class="text-amber-600 dark:text-amber-400">
+                                    <i class="fas fa-user-check ml-1"></i>
+                                    {{ number_format($c->used_codes_count ?? 0) }} مستخدمة
+                                </span>
+                            </div>
+                            <a href="{{ route('admin.activation-codes.show', $c) }}"
+                               class="inline-flex items-center gap-2 w-full justify-center px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors">
+                                <i class="fas fa-list"></i>
+                                عرض الأكواد / تحميل Excel
+                            </a>
+                        </div>
+                    @endforeach
                 </div>
-            </div>
-            <div class="overflow-x-auto">
-                @if($codes->count() > 0)
-                    <table class="w-full text-right">
-                        <thead class="bg-gray-50 dark:bg-gray-700/50">
-                            <tr>
-                                <th class="px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-300">الكود</th>
-                                <th class="px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-300">الكورس</th>
-                                <th class="px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-300">الحالة</th>
-                                <th class="px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-300">الطالب</th>
-                                <th class="px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-300">تاريخ الاستخدام</th>
-                                <th class="px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-300">تاريخ الإنشاء</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                            @foreach($codes as $code)
-                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30">
-                                <td class="px-4 py-3">
-                                    <span class="font-mono font-bold text-indigo-600 dark:text-indigo-400">{{ $code->code }}</span>
-                                </td>
-                                <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{{ Str::limit($code->course->title ?? '-', 35) }}</td>
-                                <td class="px-4 py-3">
-                                    @if($code->status === 'used')
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
-                                            <i class="fas fa-user-check ml-1"></i>
-                                            مستخدم
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
-                                            <i class="fas fa-check-circle ml-1"></i>
-                                            متاح
-                                        </span>
-                                    @endif
-                                </td>
-                                <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
-                                    @if($code->usedBy)
-                                        {{ $code->usedBy->name }}
-                                        @if($code->usedBy->phone)
-                                            <span class="text-gray-500">({{ $code->usedBy->phone }})</span>
-                                        @endif
-                                    @else
-                                        —
-                                    @endif
-                                </td>
-                                <td class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
-                                    {{ $code->used_at ? $code->used_at->format('d/m/Y H:i') : '—' }}
-                                </td>
-                                <td class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{{ $code->created_at->format('d/m/Y') }}</td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                    <div class="p-4 border-t border-gray-200 dark:border-gray-700">
-                        {{ $codes->appends(request()->query())->links() }}
-                    </div>
-                @else
-                    <div class="p-12 text-center text-gray-500 dark:text-gray-400">
-                        <i class="fas fa-ticket-alt text-4xl mb-4"></i>
-                        <p>لا توجد أكواد. قم بتوليد أكواد جديدة من النموذج أعلاه.</p>
-                    </div>
-                @endif
-            </div>
+            @else
+                <div class="text-center py-12 text-gray-500 dark:text-gray-400">
+                    <i class="fas fa-box-open text-4xl mb-4"></i>
+                    <p>لا يوجد أي كورس له أكواد تفعيل حتى الآن.</p>
+                    <p class="text-sm mt-2">قم بتوليد أكواد من النموذج أعلاه لأي كورس، ثم سيظهر هنا.</p>
+                </div>
+            @endif
         </div>
+    </div>
+
+    <!-- تصدير الكل (اختياري) -->
+    <div class="flex justify-end">
+        <a href="{{ route('admin.activation-codes.export') }}"
+           class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-emerald-500/25">
+            <i class="fas fa-file-excel"></i>
+            تحميل كل الأكواد Excel
+        </a>
     </div>
 </div>
 @endsection

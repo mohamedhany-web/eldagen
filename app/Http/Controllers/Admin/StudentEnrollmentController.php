@@ -116,8 +116,10 @@ class StudentEnrollmentController extends Controller
      */
     public function show(StudentCourseEnrollment $enrollment)
     {
-        $enrollment->load(['student', 'course.academicYear', 'course.academicSubject', 'activatedBy']);
-        
+        $enrollment->load(['student', 'activatedBy', 'course']);
+        if ($enrollment->course) {
+            $enrollment->load(['course.academicYear', 'course.academicSubject']);
+        }
         return view('admin.enrollments.show', compact('enrollment'));
     }
 

@@ -6,6 +6,16 @@
 @section('content')
 <div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-4 sm:py-6 lg:py-8">
     <div class="w-full px-3 sm:px-6 lg:px-8">
+        @if(session('error'))
+            <div class="mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 px-4 py-3 rounded-lg">
+                {{ session('error') }}
+            </div>
+        @endif
+        @if(session('success'))
+            <div class="mb-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-200 px-4 py-3 rounded-lg">
+                {{ session('success') }}
+            </div>
+        @endif
         <!-- الهيدر -->
         <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg mb-4 sm:mb-6">
             <div class="px-4 sm:px-6 py-4 border-b border-gray-200 dark:border-gray-700">
@@ -173,11 +183,19 @@
                                     {{ $subject->is_active ? 'إلغاء التفعيل' : 'تفعيل' }}
                                 </button>
                                 @if($subject->advanced_courses_count == 0)
-                                <button type="button" onclick="deleteSubject({{ $subject->id }})"
-                                        class="inline-flex items-center justify-center gap-1 text-red-600 hover:text-red-800 text-sm font-medium py-2.5 px-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 min-h-[44px] sm:min-h-0 sm:py-0 sm:px-0 sm:hover:bg-transparent">
+                                <form action="{{ route('admin.academic-subjects.destroy', $subject) }}" method="POST" class="inline" onsubmit="return confirm('هل أنت متأكد من حذف المادة «{{ addslashes($subject->name) }}»؟ لا يمكن التراجع عن هذا الإجراء.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="inline-flex items-center justify-center gap-1 text-red-600 hover:text-red-800 text-sm font-medium py-2.5 px-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 min-h-[44px] sm:min-h-0 sm:py-0 sm:px-0 sm:hover:bg-transparent">
+                                        <i class="fas fa-trash"></i>
+                                        حذف
+                                    </button>
+                                </form>
+                                @else
+                                <span class="inline-flex items-center gap-1 text-gray-400 dark:text-gray-500 text-sm py-2.5 px-3 sm:py-0 sm:px-0" title="لا يمكن الحذف: المادة تحتوي على {{ $subject->advanced_courses_count }} كورس">
                                     <i class="fas fa-trash"></i>
                                     حذف
-                                </button>
+                                </span>
                                 @endif
                             </div>
                         </div>
@@ -247,23 +265,5 @@ function toggleStatus(subjectId) {
     .catch(function() { alert('حدث خطأ أثناء تغيير الحالة'); });
 }
 
-function deleteSubject(subjectId) {
-    if (!confirm('هل أنت متأكد من حذف هذه المادة؟ لا يمكن التراجع عن هذا الإجراء.')) return;
-    var form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/admin/academic-subjects/' + subjectId;
-    var csrf = document.createElement('input');
-    csrf.type = 'hidden';
-    csrf.name = '_token';
-    csrf.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    var method = document.createElement('input');
-    method.type = 'hidden';
-    method.name = '_method';
-    method.value = 'DELETE';
-    form.appendChild(csrf);
-    form.appendChild(method);
-    document.body.appendChild(form);
-    form.submit();
-}
 </script>
 @endsection

@@ -48,8 +48,7 @@
         <div class="flex-shrink-0 bg-gray-800 text-white px-4 py-2 flex flex-wrap items-center gap-2">
             <span class="text-xs text-gray-400 whitespace-nowrap"><i class="fas fa-paperclip ml-1"></i> مرفقات الدرس:</span>
             @foreach($lessonAttachments as $att)
-                <a href="{{ storage_url($att['path'] ?? '') }}" target="_blank" rel="noopener"
-                   class="inline-flex items-center gap-1 px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-xs text-white truncate max-w-[140px]" title="{{ $att['name'] ?? 'تحميل' }}">
+                <a href="{{ storage_url($att['path'] ?? '') }}" target="_blank" rel="noopener" class="js-lesson-attachment-link inline-flex items-center gap-1 px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-xs text-white truncate max-w-[140px]" title="{{ $att['name'] ?? 'تحميل' }}">
                     <i class="fas fa-download flex-shrink-0"></i>
                     <span class="truncate">{{ Str::limit($att['name'] ?? 'ملف', 18) }}</span>
                 </a>
@@ -223,6 +222,15 @@ const allowFlexibleSubmission = @json($allowFlexibleSubmission ?? false);
         } catch(e) {}
     });
 })();
+
+// عند النقر على تحميل مرفق الدرس نضع علماً لاستثناء فتح التاب من المخالفات (لمدة 15 ثانية)
+window.lessonAttachmentDownloadClickedAt = 0;
+document.addEventListener('click', function(e) {
+    if (e.target && (e.target.closest && e.target.closest('.js-lesson-attachment-link'))) {
+        window.lessonAttachmentDownloadClickedAt = Date.now();
+        setTimeout(function() { window.lessonAttachmentDownloadClickedAt = 0; }, 16000);
+    }
+}, true);
 
 // إبلاغ الخادم بمخالفة (سكرين شوت أو تسجيل) — يؤدي لتعليق الحساب
 function reportViolationToServer(type) {
@@ -1209,10 +1217,15 @@ function isMobileDevice() {
 }
 
 // مراقبة إخفاء الصفحة المتكرر (سكرين شوت / سكرين ريكورد من الهاتف أو الكمبيوتر)
+// استثناء: تحميل مرفق الدرس (فتح تاب التحميل) لا يُعد مخالفة
 let visibilityHiddenCount = 0;
 let visibilityResetAt = 0;
 document.addEventListener('visibilitychange', function() {
     if (document.hidden) {
+        // إذا كان الطالب قد ضغط للتو على تحميل مرفق الدرس فلا نعد ذلك مخالفة
+        if (window.lessonAttachmentDownloadClickedAt && (Date.now() - window.lessonAttachmentDownloadClickedAt) < 15000) {
+            return;
+        }
         visibilityHiddenCount++;
         if (visibilityResetAt === 0) visibilityResetAt = Date.now();
         var windowMs = isMobileDevice() ? 25000 : 35000;
