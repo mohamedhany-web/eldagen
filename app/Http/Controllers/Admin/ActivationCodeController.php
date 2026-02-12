@@ -22,13 +22,17 @@ class ActivationCodeController extends Controller
     {
         $coursesWithCodes = AdvancedCourse::query()
             ->whereHas('activationCodes')
+            ->with(['academicYear', 'academicSubject'])
             ->withCount('activationCodes')
             ->withCount(['activationCodes as active_codes_count' => fn($q) => $q->where('status', CourseActivationCode::STATUS_ACTIVE)])
             ->withCount(['activationCodes as used_codes_count' => fn($q) => $q->where('status', CourseActivationCode::STATUS_USED)])
             ->orderBy('title')
             ->get();
 
-        $allCourses = AdvancedCourse::where('is_active', true)->orderBy('title')->get(['id', 'title']);
+        $allCourses = AdvancedCourse::where('is_active', true)
+            ->with(['academicYear', 'academicSubject'])
+            ->orderBy('title')
+            ->get();
 
         $stats = [
             'total' => CourseActivationCode::count(),

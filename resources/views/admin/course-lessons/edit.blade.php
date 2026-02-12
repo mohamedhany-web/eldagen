@@ -53,7 +53,7 @@
             <h4 class="text-lg font-semibold text-gray-900 dark:text-white">تعديل بيانات الدرس</h4>
         </div>
 
-        <form action="{{ route('admin.courses.lessons.update', [$course, $lesson]) }}" method="POST" enctype="multipart/form-data" class="p-6">
+        <form id="lesson-edit-form" action="{{ route('admin.courses.lessons.update', [$course, $lesson]) }}" method="POST" enctype="multipart/form-data" class="p-6">
             @csrf
             @method('PUT')
             
@@ -367,9 +367,11 @@
                     إلغاء
                 </a>
                 <button type="submit" 
-                        class="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors">
+                        id="lesson-edit-submit-btn"
+                        class="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+                        onclick="var f=document.getElementById('lesson-edit-form');if(f){if(typeof f.requestSubmit==='function'){f.requestSubmit();}else{f.submit();}} return false;">
                     <i class="fas fa-save ml-2"></i>
-                    حفظ التعديلات
+                    <span class="btn-text">حفظ التعديلات</span>
                 </button>
             </div>
         </form>
@@ -675,6 +677,18 @@ document.addEventListener('DOMContentLoaded', function() {
     toggleTypeFields();
     var typeEl = document.getElementById('type');
     if (typeEl) typeEl.addEventListener('change', toggleTypeFields);
+
+    var lessonForm = document.getElementById('lesson-edit-form');
+    if (lessonForm) {
+        lessonForm.addEventListener('submit', function() {
+            var btn = document.getElementById('lesson-edit-submit-btn');
+            if (btn && !btn.disabled) {
+                btn.disabled = true;
+                var txt = btn.querySelector('.btn-text');
+                if (txt) txt.textContent = 'جاري الحفظ...';
+            }
+        });
+    }
 
     document.getElementById('btn-add-video-question').addEventListener('click', openAddVideoQuestionModal);
     document.getElementById('btn-cancel-add-vq').addEventListener('click', closeAddVideoQuestionModal);

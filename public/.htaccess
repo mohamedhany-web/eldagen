@@ -6,6 +6,10 @@
     RewriteEngine On
     RewriteBase /
 
+    # توجيه طلبات التخزين إلى Laravel دائماً (حل 404 أونلاين عند غياب أو كسر الرابط الرمزي)
+    RewriteCond %{REQUEST_URI} /storage/
+    RewriteRule ^ index.php [L]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

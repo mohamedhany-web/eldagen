@@ -50,14 +50,25 @@
         <div class="p-6">
             <form action="{{ route('admin.activation-codes.store') }}" method="POST" class="flex flex-wrap items-end gap-4">
                 @csrf
-                <div class="min-w-[200px]">
+                <div class="min-w-[280px]">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">الكورس</label>
-                    <select name="advanced_course_id" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white">
+                    <select name="advanced_course_id" id="activation-course-select" required
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white">
                         <option value="">اختر الكورس</option>
                         @foreach($allCourses as $c)
-                            <option value="{{ $c->id }}" {{ old('advanced_course_id') == $c->id ? 'selected' : '' }}>{{ $c->title }}</option>
+                            <option value="{{ $c->id }}"
+                                    data-year="{{ $c->academicYear?->name ?? '—' }}"
+                                    data-subject="{{ $c->academicSubject?->name ?? '—' }}"
+                                    {{ old('advanced_course_id') == $c->id ? 'selected' : '' }}>
+                                {{ $c->title }} — {{ $c->academicSubject?->name ?? '—' }} ({{ $c->academicYear?->name ?? '—' }})
+                            </option>
                         @endforeach
                     </select>
+                    <p id="selected-course-info" class="text-sm text-gray-600 dark:text-gray-400 mt-1.5 hidden">
+                        <span class="font-medium">السنة الدراسية:</span> <span id="selected-year">—</span>
+                        <span class="mr-3">|</span>
+                        <span class="font-medium">المادة:</span> <span id="selected-subject">—</span>
+                    </p>
                     @error('advanced_course_id')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
                 </div>
                 <div class="w-32">
@@ -85,7 +96,12 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     @foreach($coursesWithCodes as $c)
                         <div class="border border-gray-200 dark:border-gray-600 rounded-xl p-5 hover:border-indigo-400 dark:hover:border-indigo-500 transition-colors bg-gray-50/50 dark:bg-gray-700/30">
-                            <h4 class="font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2">{{ $c->title }}</h4>
+                            <h4 class="font-semibold text-gray-900 dark:text-white mb-1 line-clamp-2">{{ $c->title }}</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                                <span class="font-medium">المادة:</span> {{ $c->academicSubject?->name ?? '—' }}
+                                <span class="mx-1">|</span>
+                                <span class="font-medium">السنة الدراسية:</span> {{ $c->academicYear?->name ?? '—' }}
+                            </p>
                             <div class="flex flex-wrap gap-3 text-sm mb-4">
                                 <span class="text-gray-600 dark:text-gray-400">
                                     <i class="fas fa-ticket-alt ml-1"></i>
@@ -127,4 +143,28 @@
         </a>
     </div>
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var sel = document.getElementById('activation-course-select');
+    var infoEl = document.getElementById('selected-course-info');
+    var yearEl = document.getElementById('selected-year');
+    var subjectEl = document.getElementById('selected-subject');
+    function updateSelectedCourseInfo() {
+        if (!sel || !infoEl || !yearEl || !subjectEl) return;
+        var opt = sel.options[sel.selectedIndex];
+        if (opt && opt.value) {
+            yearEl.textContent = opt.getAttribute('data-year') || '—';
+            subjectEl.textContent = opt.getAttribute('data-subject') || '—';
+            infoEl.classList.remove('hidden');
+        } else {
+            infoEl.classList.add('hidden');
+        }
+    }
+    if (sel) sel.addEventListener('change', updateSelectedCourseInfo);
+    updateSelectedCourseInfo();
+});
+</script>
+@endpush
 @endsection

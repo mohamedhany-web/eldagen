@@ -5,6 +5,16 @@
 
 @section('content')
 <div class="space-y-6">
+    @if(session('success'))
+        <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-200 px-4 py-3 rounded-xl">
+            {{ session('success') }}
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 px-4 py-3 rounded-xl">
+            {{ session('error') }}
+        </div>
+    @endif
     <!-- إحصائيات سريعة -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
         <!-- إجمالي السنوات -->
@@ -120,9 +130,18 @@
                             </span>
                             <div class="flex gap-2">
                                 <a href="{{ route('admin.academic-years.edit', $year) }}" 
-                                   class="p-2 text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors">
+                                   class="p-2 text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
+                                   title="تعديل">
                                     <i class="fas fa-edit"></i>
                                 </a>
+                                <form action="{{ route('admin.academic-years.destroy', $year) }}" method="POST" class="inline"
+                                      onsubmit="return confirm('هل أنت متأكد من حذف السنة الدراسية «{{ addslashes($year->name) }}»؟ لا يمكن التراجع عن هذا الإجراء.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors" title="حذف">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </div>

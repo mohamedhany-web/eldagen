@@ -159,6 +159,9 @@ class CourseLessonController extends Controller
      */
     public function edit(AdvancedCourse $course, CourseLesson $lesson)
     {
+        if ($lesson->advanced_course_id != $course->id) {
+            abort(404, 'الدرس غير تابع لهذا الكورس');
+        }
         $sections = $course->sections()->ordered()->get();
         return view('admin.course-lessons.edit', compact('course', 'lesson', 'sections'));
     }
@@ -168,6 +171,10 @@ class CourseLessonController extends Controller
      */
     public function update(Request $request, AdvancedCourse $course, CourseLesson $lesson)
     {
+        if ($lesson->advanced_course_id != $course->id) {
+            abort(404, 'الدرس غير تابع لهذا الكورس');
+        }
+
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -201,7 +208,7 @@ class CourseLessonController extends Controller
             }
         }
 
-        // دمج المرفقات الجديدة مع الحالية (المسار نسبي)
+        // دمج المرفقات الجديدة مع الحالية (المسار نسبي) — إن لم يُرفع ملف جديد لا نغيّر المرفقات الحالية
         if ($request->hasFile('attachments')) {
             $currentAttachments = $lesson->getAttachmentsArray();
             foreach ($request->file('attachments') as $file) {
@@ -214,7 +221,12 @@ class CourseLessonController extends Controller
                 ];
             }
             $data['attachments'] = json_encode($currentAttachments);
+        } else {
+            unset($data['attachments']);
         }
+
+        // إزالة مفاتيح الطلب التي لا تُخزَّن في الجدول
+        unset($data['_token'], $data['_method']);
 
         $lesson->update($data);
 
