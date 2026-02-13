@@ -3,39 +3,7 @@
 @section('title', $course->title)
 
 @section('content')
-<div class="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col" x-data="{ sidebarOpen: true, showWarningModal: false }" x-init="
-    if (!sessionStorage.getItem('course_warning_seen_{{ $course->id }}')) {
-        showWarningModal = true;
-    }
-">
-    <!-- تنبيه عند فتح الكورس: سكرين شوت / تسجيل = تعليق الحساب -->
-    <div x-show="showWarningModal" x-cloak
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-lg w-full p-6 border border-gray-200 dark:border-gray-700"
-             @click.away="showWarningModal = false">
-            <div class="text-center mb-6">
-                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center">
-                    <i class="fas fa-exclamation-triangle text-3xl text-amber-600 dark:text-amber-400"></i>
-                </div>
-                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-2">تنبيه هام</h2>
-                <p class="text-gray-700 dark:text-gray-300 text-right leading-relaxed">
-                    عند أخذ <strong>سكرين شوت</strong> أو محاولة <strong>تسجيل الشاشة (سكرين ريكورد)</strong> — من الكمبيوتر أو من <strong>الهاتف</strong> — لفيديوهات الكورس، سيتم <strong>تعليق حسابك</strong> تلقائياً.
-                    <br>
-                    <span class="text-amber-600 dark:text-amber-400 font-medium">لإعادة التفعيل يجب التواصل مع إدارة المنصة.</span>
-                </p>
-            </div>
-            <div class="flex justify-center">
-                <button type="button" @click="sessionStorage.setItem('course_warning_seen_{{ $course->id }}', '1'); showWarningModal = false"
-                        class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-colors">
-                    فهمت، أوافق على القواعد
-                </button>
-            </div>
-        </div>
-    </div>
-
+<div class="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col" x-data="{ sidebarOpen: true }">
     <!-- شريط علوي: العودة + عنوان الكورس + تقدم + زر السايدبار -->
     <div class="flex-shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between gap-4">
         <div class="flex items-center gap-3 min-w-0">
@@ -151,19 +119,21 @@
             </div>
         </aside>
 
-        <!-- المحتوى الرئيسي: مشغل الفيديو المحمي (iframe للدرس) -->
-        <main class="flex-1 min-w-0 flex flex-col bg-black">
+        <!-- المحتوى الرئيسي: مشغل الفيديو (على الهاتف عرض ثابت لتحسين ظهور الفيديو) -->
+        <main class="flex-1 min-w-0 flex flex-col bg-black overflow-x-auto">
             @if($selectedLessonId && $course->lessons->firstWhere('id', $selectedLessonId))
                 @php
                     $selectedLesson = $course->lessons->firstWhere('id', $selectedLessonId);
                     $canOpenSelected = isset($canOpenLessonIds[$selectedLessonId]);
                 @endphp
                 @if($canOpenSelected && $selectedLesson->is_active)
-                    <iframe id="lesson-viewer-iframe" src="{{ route('my-courses.lesson.watch', [$course, $selectedLesson]) }}"
-                            class="w-full flex-1 min-h-0 border-0"
-                            title="{{ $selectedLesson->title }}"
-                            allow="encrypted-media; fullscreen"
-                            allowfullscreen></iframe>
+                    <div class="flex-1 min-h-0 min-w-[800px] w-full flex flex-col">
+                        <iframe id="lesson-viewer-iframe" src="{{ route('my-courses.lesson.watch', [$course, $selectedLesson]) }}"
+                                class="w-full flex-1 min-h-0 border-0"
+                                title="{{ $selectedLesson->title }}"
+                                allow="encrypted-media; fullscreen"
+                                allowfullscreen></iframe>
+                    </div>
                 @else
                     <div class="flex-1 flex items-center justify-center text-white p-8 text-center">
                         <div>

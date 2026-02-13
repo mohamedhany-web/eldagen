@@ -108,7 +108,7 @@
                     <option value="">جميع الكورسات</option>
                     @foreach($courses as $course)
                         <option value="{{ $course->id }}" {{ request('course_id') == $course->id ? 'selected' : '' }}>
-                            {{ $course->title }}
+                            {{ $course->title }} — {{ $course->academicSubject?->name ?? '—' }} ({{ $course->academicYear?->name ?? '—' }})
                         </option>
                     @endforeach
                 </select>

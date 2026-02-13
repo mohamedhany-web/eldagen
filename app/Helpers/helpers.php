@@ -51,3 +51,21 @@ if (!function_exists('storage_url')) {
         return $base . '/storage/' . $path;
     }
 }
+
+if (!function_exists('course_attachment_url')) {
+    /**
+     * رابط تحميل مرفق درس — يمر عبر مسار واحد مع query لتفادي 404 على الاستضافة
+     * (نفس فكرة تمرير الطلب عبر Laravel كما الصور، لكن بدون اعتماد على segments متعددة).
+     */
+    function course_attachment_url(?string $path): ?string
+    {
+        if ($path === null || $path === '') {
+            return null;
+        }
+        $path = ltrim(str_replace('\\', '/', $path), '/');
+        if (!str_starts_with($path, 'course-attachments/')) {
+            $path = 'course-attachments/' . $path;
+        }
+        return url()->route('files.course-attachment', ['p' => base64_encode($path)]);
+    }
+}

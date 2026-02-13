@@ -322,7 +322,7 @@
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-2">
-                                        <a href="{{ storage_url($attachment['path'] ?? '') }}" 
+                                        <a href="{{ course_attachment_url($attachment['path'] ?? '') }}" 
                                            target="_blank"
                                            class="text-primary-600 hover:text-primary-700 font-medium">
                                             <i class="fas fa-download ml-1"></i>

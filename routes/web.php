@@ -137,6 +137,29 @@ Route::get('storage/{path}', function ($path) {
         abort(404, 'File not found');
     }
 })->where('path', '(.*)')->name('storage.file')->middleware('web');
+
+// مسار واحد لتحميل مرفقات الدروس (query string) — يعمل على الاستضافة دون 404
+$serveCourseAttachmentByQuery = function () use ($serveStorageFile) {
+    $p = request()->query('p');
+    if (!$p) {
+        abort(404, 'File not found');
+    }
+    $path = base64_decode($p, true);
+    if ($path === false || $path === '' || str_contains($path, '..')) {
+        abort(404, 'File not found');
+    }
+    $path = ltrim(str_replace('\\', '/', $path), '/');
+    if (!str_starts_with($path, 'course-attachments/')) {
+        abort(404, 'File not found');
+    }
+    return $serveStorageFile($path, false);
+};
+if ($storageRoutePrefix !== '') {
+    Route::get($storageRoutePrefix . 'f/attachment', $serveCourseAttachmentByQuery)->name('files.course-attachment')->middleware('web');
+} else {
+    Route::get('f/attachment', $serveCourseAttachmentByQuery)->name('files.course-attachment')->middleware('web');
+}
+
 if ($storageRoutePrefix !== '') {
     Route::get($storageRoutePrefix . 'storage/{path}', function ($path) {
         $requestPath = request_path_without_base(request()->path());

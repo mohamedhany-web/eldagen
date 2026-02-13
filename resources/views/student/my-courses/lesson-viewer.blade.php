@@ -48,7 +48,7 @@
         <div class="flex-shrink-0 bg-gray-800 text-white px-4 py-2 flex flex-wrap items-center gap-2">
             <span class="text-xs text-gray-400 whitespace-nowrap"><i class="fas fa-paperclip ml-1"></i> مرفقات الدرس:</span>
             @foreach($lessonAttachments as $att)
-                <a href="{{ storage_url($att['path'] ?? '') }}" target="_blank" rel="noopener" class="js-lesson-attachment-link inline-flex items-center gap-1 px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-xs text-white truncate max-w-[140px]" title="{{ $att['name'] ?? 'تحميل' }}">
+                <a href="{{ course_attachment_url($att['path'] ?? '') }}" target="_blank" rel="noopener" class="js-lesson-attachment-link inline-flex items-center gap-1 px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-xs text-white truncate max-w-[140px]" title="{{ $att['name'] ?? 'تحميل' }}">
                     <i class="fas fa-download flex-shrink-0"></i>
                     <span class="truncate">{{ Str::limit($att['name'] ?? 'ملف', 18) }}</span>
                 </a>
@@ -232,30 +232,9 @@ document.addEventListener('click', function(e) {
     }
 }, true);
 
-// إبلاغ الخادم بمخالفة (سكرين شوت أو تسجيل) — يؤدي لتعليق الحساب
+// منطقة التعلم: نظام المخالفات معطّل (يُطبّق فقط في الامتحانات)
 function reportViolationToServer(type) {
-    if (violationReported) return;
-    violationReported = true;
-    fetch('{{ route("my-courses.report-violation") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify({ type: type, notes: 'درس', _token: '{{ csrf_token() }}' })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.suspended && data.redirect) {
-            if (window.top !== window.self) {
-                window.top.location.href = data.redirect;
-            } else {
-                window.location.href = data.redirect;
-            }
-        }
-    })
-    .catch(() => { violationReported = false; });
+    // لا إبلاغ ولا تعليق في صفحة الدروس
 }
 
 // كشف ومنع كل اختصارات التصوير (Print Screen، أداة القص، إلخ)
@@ -280,7 +259,6 @@ function handleScreenshotAttempt(e) {
     e.preventDefault();
     e.stopPropagation();
     e.stopImmediatePropagation();
-    reportViolationToServer('screenshot');
     return false;
 }
 window.addEventListener('keydown', function(e) {
@@ -296,16 +274,13 @@ document.addEventListener('keyup', function(e) {
     if (isScreenshotShortcut(e)) return handleScreenshotAttempt(e);
 }, true);
 
-// كشف اللصق بعد السكرين شوت: عند لصق صورة من الحافظة = إبلاغ وتعليق وتوجيه تلقائي
+// منع لصق الصور في منطقة الدرس (بدون إبلاغ مخالفة)
 document.addEventListener('paste', function(e) {
     e.preventDefault();
     var items = e.clipboardData && e.clipboardData.items;
     if (items) {
         for (var i = 0; i < items.length; i++) {
-            if (items[i].type.indexOf('image') !== -1) {
-                reportViolationToServer('screenshot');
-                return;
-            }
+            if (items[i].type.indexOf('image') !== -1) return;
         }
     }
 }, true);
@@ -1170,21 +1145,15 @@ setInterval(function() {
     }
 }, 500);
 
-// حماية شاملة من التسجيل (كمبيوتر + هاتف) — إبلاغ وتعليق
+// منطقة التعلم: عدم إبلاغ بتسجيل الشاشة (نظام المخالفات معطّل هنا)
 navigator.mediaDevices.getDisplayMedia = function() {
-    reportViolationToServer('recording');
-    activateScreenshotProtection();
-    showProtectionMessage('تسجيل الشاشة ممنوع - تم الإبلاغ عن المخالفة وسيتم تعليق حسابك');
     return Promise.reject(new Error('Screen recording is disabled'));
 };
 
-// منع استخدام MediaRecorder لتسجيل الفيديو (سكرين ريكورد من الصفحة أو الهاتف)
 var OriginalMediaRecorder = window.MediaRecorder;
 if (OriginalMediaRecorder) {
     window.MediaRecorder = function(stream, options) {
         if (stream && stream.getVideoTracks && stream.getVideoTracks().length > 0) {
-            reportViolationToServer('recording');
-            showProtectionMessage('تسجيل الشاشة ممنوع - تم الإبلاغ عن المخالفة وسيتم تعليق حسابك');
             throw new Error('Screen recording is disabled');
         }
         return new OriginalMediaRecorder(stream, options);
@@ -1192,20 +1161,13 @@ if (OriginalMediaRecorder) {
     window.MediaRecorder.prototype = OriginalMediaRecorder.prototype;
 }
 
-// منع captureStream على الفيديو والكانفس (لتسجيل المحتوى — كمبيوتر أو هاتف)
 if (HTMLVideoElement.prototype.captureStream) {
-    var origVideoCapture = HTMLVideoElement.prototype.captureStream;
     HTMLVideoElement.prototype.captureStream = function() {
-        reportViolationToServer('recording');
-        showProtectionMessage('تسجيل الشاشة ممنوع - تم الإبلاغ وسيتم تعليق حسابك');
         throw new Error('Screen recording is disabled');
     };
 }
 if (HTMLCanvasElement.prototype.captureStream) {
-    var origCanvasCapture = HTMLCanvasElement.prototype.captureStream;
     HTMLCanvasElement.prototype.captureStream = function() {
-        reportViolationToServer('recording');
-        showProtectionMessage('تسجيل الشاشة ممنوع - تم الإبلاغ وسيتم تعليق حسابك');
         throw new Error('Screen recording is disabled');
     };
 }
@@ -1216,34 +1178,7 @@ function isMobileDevice() {
            (navigator.maxTouchPoints && navigator.maxTouchPoints > 2);
 }
 
-// مراقبة إخفاء الصفحة المتكرر (سكرين شوت / سكرين ريكورد من الهاتف أو الكمبيوتر)
-// استثناء: تحميل مرفق الدرس (فتح تاب التحميل) لا يُعد مخالفة
-let visibilityHiddenCount = 0;
-let visibilityResetAt = 0;
-document.addEventListener('visibilitychange', function() {
-    if (document.hidden) {
-        // إذا كان الطالب قد ضغط للتو على تحميل مرفق الدرس فلا نعد ذلك مخالفة
-        if (window.lessonAttachmentDownloadClickedAt && (Date.now() - window.lessonAttachmentDownloadClickedAt) < 15000) {
-            return;
-        }
-        visibilityHiddenCount++;
-        if (visibilityResetAt === 0) visibilityResetAt = Date.now();
-        var windowMs = isMobileDevice() ? 25000 : 35000;
-        var threshold = isMobileDevice() ? 2 : 4;
-        if (visibilityHiddenCount >= threshold && (Date.now() - visibilityResetAt) < windowMs) {
-            reportViolationToServer(isMobileDevice() ? 'recording' : 'screenshot');
-            showProtectionMessage('تم رصد سلوك يشبه التصوير أو تسجيل الشاشة - تم الإبلاغ وسيتم تعليق حسابك');
-        }
-        activateScreenshotProtection();
-    } else {
-        if (Date.now() - visibilityResetAt > (isMobileDevice() ? 25000 : 35000)) {
-            visibilityHiddenCount = 0;
-            visibilityResetAt = 0;
-        }
-    }
-});
-
-// على الهاتف: عند الخروج من الصفحة (سكرين ريكورد من النظام) نعتمد على visibilitychange أعلاه بحد أقسى (٢ في ٢٥ ثانية)
+// منطقة التعلم: لا إبلاغ عند إخفاء الصفحة (نظام المخالفات معطّل هنا)
 
 // مراقبة تغيير حجم النافذة (محاولة تصوير)
 window.addEventListener('resize', function() {
