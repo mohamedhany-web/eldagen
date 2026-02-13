@@ -3,7 +3,6 @@
 namespace App\Http\Middleware;
 
 use App\Models\ActivityLog;
-use App\Models\StudentDevice;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,25 +20,9 @@ class LogActivityMiddleware
         // تسجيل الأنشطة فقط للمستخدمين المسجلين
         if (Auth::check()) {
             $this->logActivity($request, $response);
-            // تحديث آخر نشاط لجهاز الطالب (يظهر في صفحة تسجيلات الطلاب)
-            $this->touchStudentDevice($request);
         }
 
         return $response;
-    }
-
-    /**
-     * تحديث وقت آخر نشاط لجهاز الطالب الحالي (لصفحة admin/student-sessions)
-     */
-    private function touchStudentDevice(Request $request): void
-    {
-        $user = Auth::user();
-        if ($user->role !== 'student') {
-            return;
-        }
-        StudentDevice::where('user_id', $user->id)
-            ->where('session_id', $request->session()->getId())
-            ->update(['last_activity' => now()]);
     }
 
     /**

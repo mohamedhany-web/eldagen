@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\StudentDevice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -42,39 +41,11 @@ class AuthController extends Controller
             return back()->withErrors($validator)->withInput();
         }
 
-        $user = User::where('phone', $request->phone)->first();
-
-        // تقييد الطالب بجهاز واحد: إذا كان مسجلاً من جهاز آخر نرفض الدخول
-        if ($user && $user->role === 'student' && $user->is_active) {
-            if (Hash::check($request->password, $user->password)) {
-                $device = StudentDevice::where('user_id', $user->id)->first();
-                $currentSessionId = $request->session()->getId();
-                if ($device && $device->session_id !== $currentSessionId) {
-                    return back()->withErrors([
-                        'phone' => 'حسابك مسجّل حالياً من جهاز واحد فقط. لفتح الحساب من جهاز آخر، تواصل مع الإدارة ليقوموا بإلغاء تسجيل الدخول من الجهاز الحالي.',
-                    ])->withInput();
-                }
-            }
-        }
-
         $credentials = $request->only('phone', 'password');
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
             $user = Auth::user();
-
-            // حفظ جهاز الطالب المسموح له (جهاز واحد فقط) وظهوره في صفحة تسجيلات الطلاب
-            if ($user->role === 'student') {
-                StudentDevice::updateOrCreate(
-                    ['user_id' => $user->id],
-                    [
-                        'session_id' => $request->session()->getId(),
-                        'ip_address' => $request->ip(),
-                        'user_agent' => $request->userAgent(),
-                        'last_activity' => now(),
-                    ]
-                );
-            }
             $user->updateLastLogin();
 
             return redirect()->intended('/dashboard');
@@ -122,17 +93,6 @@ class AuthController extends Controller
 
         Auth::login($user);
         $request->session()->regenerate();
-
-        // تسجيل جهاز الطالب فوراً ليظهر في صفحة تسجيلات الطلاب (admin/student-sessions)
-        StudentDevice::updateOrCreate(
-            ['user_id' => $user->id],
-            [
-                'session_id' => $request->session()->getId(),
-                'ip_address' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-                'last_activity' => now(),
-            ]
-        );
         $user->updateLastLogin();
 
         return redirect('/dashboard');
@@ -140,13 +100,6 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        $user = Auth::user();
-
-        // حذف جهاز الطالب المسجّل حتى يتمكن من الدخول مرة أخرى من نفس الجهاز أو غيره بعد تسجيل الخروج
-        if ($user && $user->role === 'student') {
-            StudentDevice::where('user_id', $user->id)->delete();
-        }
-
         Auth::logout();
 
         $request->session()->invalidate();

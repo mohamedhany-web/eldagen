@@ -12,6 +12,7 @@ class StudentDevice extends Model
         'session_id',
         'ip_address',
         'user_agent',
+        'device_fingerprint',
         'last_activity',
     ];
 
