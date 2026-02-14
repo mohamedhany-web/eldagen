@@ -185,21 +185,25 @@
                         <div class="p-6">
                             <div class="space-y-3">
                                 @foreach($attachments as $attachment)
+                                    @php
+                                        $isExt = !empty($attachment['external']) || str_starts_with($attachment['path'] ?? '', 'http');
+                                        $attUrl = $isExt ? ($attachment['path'] ?? '') : course_attachment_url($attachment['path'] ?? '');
+                                    @endphp
                                     <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                                         <div class="flex items-center space-x-3 space-x-reverse">
                                             <div class="w-10 h-10 bg-primary-100 dark:bg-primary-900 rounded-lg flex items-center justify-center">
-                                                <i class="fas fa-file text-primary-600 dark:text-primary-400"></i>
+                                                <i class="fas {{ $isExt ? 'fa-link' : 'fa-file' }} text-primary-600 dark:text-primary-400"></i>
                                             </div>
                                             <div>
                                                 <div class="font-medium text-gray-900 dark:text-white">{{ $attachment['name'] }}</div>
-                                                <div class="text-sm text-gray-500 dark:text-gray-400">{{ number_format($attachment['size'] / 1024, 2) }} KB</div>
+                                                <div class="text-sm text-gray-500 dark:text-gray-400">{{ $isExt ? 'رابط خارجي' : number_format(($attachment['size'] ?? 0) / 1024, 2) . ' KB' }}</div>
                                             </div>
                                         </div>
-                                        <a href="{{ course_attachment_url($attachment['path'] ?? '') }}" 
+                                        <a href="{{ $attUrl }}" 
                                            target="_blank"
                                            class="text-primary-600 hover:text-primary-700 font-medium">
-                                            <i class="fas fa-download ml-1"></i>
-                                            تحميل
+                                            <i class="fas {{ $isExt ? 'fa-external-link-alt' : 'fa-download' }} ml-1"></i>
+                                            {{ $isExt ? 'فتح الرابط' : 'تحميل' }}
                                         </a>
                                     </div>
                                 @endforeach

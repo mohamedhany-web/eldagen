@@ -48,8 +48,12 @@
         <div class="flex-shrink-0 bg-gray-800 text-white px-4 py-2 flex flex-wrap items-center gap-2">
             <span class="text-xs text-gray-400 whitespace-nowrap"><i class="fas fa-paperclip ml-1"></i> مرفقات الدرس:</span>
             @foreach($lessonAttachments as $att)
-                <a href="{{ course_attachment_url($att['path'] ?? '') }}" target="_blank" rel="noopener" class="js-lesson-attachment-link inline-flex items-center gap-1 px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-xs text-white truncate max-w-[140px]" title="{{ $att['name'] ?? 'تحميل' }}">
-                    <i class="fas fa-download flex-shrink-0"></i>
+                @php
+                    $isExternal = !empty($att['external']) || str_starts_with($att['path'] ?? '', 'http');
+                    $attHref = $isExternal ? ($att['path'] ?? '') : course_attachment_url($att['path'] ?? '');
+                @endphp
+                <a href="{{ $attHref }}" target="_blank" rel="noopener" class="js-lesson-attachment-link inline-flex items-center gap-1 px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-xs text-white truncate max-w-[140px]" title="{{ $att['name'] ?? 'تحميل' }}">
+                    <i class="fas {{ $isExternal ? 'fa-link' : 'fa-download' }} flex-shrink-0"></i>
                     <span class="truncate">{{ Str::limit($att['name'] ?? 'ملف', 18) }}</span>
                 </a>
             @endforeach

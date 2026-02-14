@@ -15,7 +15,13 @@ class CourseLessonController extends Controller
      */
     private function attachmentStoragePath(array $attachment): string
     {
-        $path = $attachment['path'] ?? '';
+        if (!empty($attachment['external']) || empty($attachment['path'])) {
+            return '';
+        }
+        $path = $attachment['path'];
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return '';
+        }
         if (str_contains($path, '/storage/')) {
             return (string) preg_replace('#.*/storage/#', '', $path);
         }
@@ -67,7 +73,6 @@ class CourseLessonController extends Controller
             'video_url' => 'nullable|url',
             'video_source' => 'nullable|in:youtube,vimeo,google_drive,direct,other',
 
-            'attachments.*' => 'nullable|file|max:10240', // 10MB per file
             'duration_minutes' => 'nullable|integer|min:0',
             'order' => 'nullable|integer|min:0',
             'is_free' => 'boolean',
@@ -80,7 +85,6 @@ class CourseLessonController extends Controller
             'type.in' => 'نوع الدرس غير صحيح',
             'video_url.url' => 'رابط الفيديو غير صحيح',
 
-            'attachments.*.max' => 'حجم المرفق لا يجب أن يتجاوز 10MB',
             'duration_minutes.min' => 'مدة الدرس لا يمكن أن تكون سالبة',
         ]);
 
@@ -112,19 +116,30 @@ class CourseLessonController extends Controller
             }
         }
 
-        // رفع المرفقات (المسار نسبي لتسهيل الحذف والعرض)
-        if ($request->hasFile('attachments')) {
+        // مرفقات كروابط خارجية
+        $attachmentLinks = $request->input('attachment_links', []);
+        if (is_array($attachmentLinks)) {
             $attachments = [];
-            foreach ($request->file('attachments') as $file) {
-                $path = $file->store('course-attachments', 'public');
+            foreach ($attachmentLinks as $link) {
+                $url = isset($link['url']) ? trim($link['url']) : '';
+                if ($url === '') {
+                    continue;
+                }
+                if (!filter_var($url, FILTER_VALIDATE_URL)) {
+                    return back()->withErrors(['attachment_links' => 'رابط المرفق غير صحيح: ' . $url])->withInput();
+                }
+                $name = isset($link['name']) && trim($link['name']) !== '' ? trim($link['name']) : (basename(parse_url($url, PHP_URL_PATH)) ?: 'رابط');
                 $attachments[] = [
-                    'name' => $file->getClientOriginalName(),
-                    'path' => $path,
-                    'size' => $file->getSize(),
-                    'type' => $file->getMimeType(),
+                    'name' => $name,
+                    'path' => $url,
+                    'size' => 0,
+                    'type' => 'application/octet-stream',
+                    'external' => true,
                 ];
             }
-            $data['attachments'] = json_encode($attachments);
+            if (count($attachments) > 0) {
+                $data['attachments'] = json_encode($attachments);
+            }
         }
 
         $lesson = CourseLesson::create($data);
@@ -184,7 +199,6 @@ class CourseLessonController extends Controller
             'video_url' => 'nullable|url',
             'video_source' => 'nullable|in:youtube,vimeo,google_drive,direct,other',
 
-            'attachments.*' => 'nullable|file|max:10240',
             'duration_minutes' => 'nullable|integer|min:0',
             'order' => 'nullable|integer|min:0',
             'is_free' => 'boolean',
@@ -208,16 +222,25 @@ class CourseLessonController extends Controller
             }
         }
 
-        // دمج المرفقات الجديدة مع الحالية (المسار نسبي) — إن لم يُرفع ملف جديد لا نغيّر المرفقات الحالية
-        if ($request->hasFile('attachments')) {
+        // دمج مرفقات الروابط الخارجية الجديدة مع الحالية
+        $attachmentLinks = $request->input('attachment_links', []);
+        if (is_array($attachmentLinks)) {
             $currentAttachments = $lesson->getAttachmentsArray();
-            foreach ($request->file('attachments') as $file) {
-                $path = $file->store('course-attachments', 'public');
+            foreach ($attachmentLinks as $link) {
+                $url = isset($link['url']) ? trim($link['url']) : '';
+                if ($url === '') {
+                    continue;
+                }
+                if (!filter_var($url, FILTER_VALIDATE_URL)) {
+                    return back()->withErrors(['attachment_links' => 'رابط المرفق غير صحيح: ' . $url])->withInput();
+                }
+                $name = isset($link['name']) && trim($link['name']) !== '' ? trim($link['name']) : (basename(parse_url($url, PHP_URL_PATH)) ?: 'رابط');
                 $currentAttachments[] = [
-                    'name' => $file->getClientOriginalName(),
-                    'path' => $path,
-                    'size' => $file->getSize(),
-                    'type' => $file->getMimeType(),
+                    'name' => $name,
+                    'path' => $url,
+                    'size' => 0,
+                    'type' => 'application/octet-stream',
+                    'external' => true,
                 ];
             }
             $data['attachments'] = json_encode($currentAttachments);
@@ -290,7 +313,7 @@ class CourseLessonController extends Controller
         }
         array_splice($attachments, $index, 1);
         $lesson->update(['attachments' => count($attachments) ? json_encode($attachments) : null]);
-        return back()->with('success', 'تم حذف المرفق.');
+        return redirect()->route('admin.courses.lessons.edit', [$course, $lesson])->with('success', 'تم حذف المرفق.');
     }
 
     /**

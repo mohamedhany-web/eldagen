@@ -251,18 +251,34 @@
 
 
 
-            <!-- رفع المرفقات -->
+            <!-- إضافة مرفقات كروابط خارجية -->
             <div class="mt-6">
-                <label for="attachments" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    المرفقات (اختياري)
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    مرفقات الدرس كروابط (اختياري)
                 </label>
-                <input type="file" 
-                       name="attachments[]" 
-                       id="attachments" 
-                       multiple
-                       class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">يمكن رفع عدة ملفات. الحد الأقصى لكل ملف: 10 ميجابايت</p>
-                @error('attachments.*')
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">أضف رابطاً لملف موجود على الإنترنت (Google Drive، OneDrive، أو أي استضافة). الطالب يفتح الرابط ويحمّل الملف من مصدره.</p>
+                <div id="attachment-links-container" class="space-y-3">
+                    <div class="attachment-link-row flex flex-wrap gap-3 items-end">
+                        <div class="flex-1 min-w-[200px]">
+                            <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">اسم المرفق (اختياري)</label>
+                            <input type="text" name="attachment_links[0][name]" placeholder="مثال: ملخص الدرس"
+                                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-white">
+                        </div>
+                        <div class="flex-1 min-w-[200px]">
+                            <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">رابط الملف (اختياري)</label>
+                            <input type="url" name="attachment_links[0][url]" placeholder="https://..."
+                                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-white">
+                        </div>
+                        <button type="button" class="remove-link-row hidden px-2 py-2 text-red-600 hover:text-red-700" title="حذف السطر">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="button" id="add-attachment-link-row" class="mt-2 text-sm text-primary-600 dark:text-primary-400 hover:underline">
+                    <i class="fas fa-plus ml-1"></i>
+                    إضافة رابط آخر
+                </button>
+                @error('attachment_links')
                     <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                 @enderror
             </div>
@@ -305,6 +321,21 @@ function toggleTypeFields() {
 // تشغيل الدالة عند تحميل الصفحة للحفاظ على القيم القديمة
 document.addEventListener('DOMContentLoaded', function() {
     toggleTypeFields();
+
+    var container = document.getElementById('attachment-links-container');
+    var linkIndex = 1;
+    document.getElementById('add-attachment-link-row').addEventListener('click', function() {
+        var firstRow = container.querySelector('.attachment-link-row');
+        var clone = firstRow.cloneNode(true);
+        clone.querySelector('input[name*="[name]"]').value = '';
+        clone.querySelector('input[name*="[url]"]').value = '';
+        clone.querySelector('input[name*="[name]"]').name = 'attachment_links[' + linkIndex + '][name]';
+        clone.querySelector('input[name*="[url]"]').name = 'attachment_links[' + linkIndex + '][url]';
+        clone.querySelector('.remove-link-row').classList.remove('hidden');
+        clone.querySelector('.remove-link-row').addEventListener('click', function() { clone.remove(); });
+        container.appendChild(clone);
+        linkIndex++;
+    });
 });
 
 function previewVideo() {
