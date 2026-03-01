@@ -20,11 +20,11 @@
                 بحث وتصفية
             </h3>
         </div>
-        <form method="GET" action="{{ route('admin.users') }}" class="p-6">
+        <form method="GET" action="{{ route('admin.users') }}" class="p-6" id="admin-users-search-form">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">البحث</label>
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="الاسم، البريد، أو الهاتف"
+                    <input type="text" name="search" id="admin-users-search-input" value="{{ request('search') }}" placeholder="الاسم، البريد، أو الهاتف" autocomplete="off"
                            class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-colors">
                 </div>
                 <div>

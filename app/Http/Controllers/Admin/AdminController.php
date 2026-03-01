@@ -49,27 +49,30 @@ class AdminController extends Controller
     {
         $query = User::query();
 
-        // فلترة حسب الدور
-        if ($request->has('role') && $request->role) {
-            $query->where('role', $request->role);
+        // فلترة حسب الدور (فقط عند اختيار قيمة)
+        $role = $request->query('role', $request->input('role', ''));
+        if ($role !== '' && in_array($role, ['admin', 'student', 'teacher', 'parent'], true)) {
+            $query->where('role', $role);
         }
 
-        // فلترة حسب الحالة
-        if ($request->has('status') && $request->status !== '') {
-            $query->where('is_active', $request->status);
+        // فلترة حسب الحالة (فقط عند اختيار نشط أو غير نشط)
+        $status = $request->query('status', $request->input('status', ''));
+        if ($status === '1' || $status === '0') {
+            $query->where('is_active', (int) $status);
         }
 
-        // البحث
-        if ($request->has('search') && $request->search) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('name', 'LIKE', "%{$search}%")
-                  ->orWhere('email', 'LIKE', "%{$search}%")
-                  ->orWhere('phone', 'LIKE', "%{$search}%");
+        // البحث: الاسم، البريد، الهاتف (من query string لطلبات GET)
+        $search = trim((string) ($request->query('search') ?? $request->input('search', '')));
+        if ($search !== '') {
+            $like = '%' . $search . '%';
+            $query->where(function ($q) use ($like) {
+                $q->where('name', 'LIKE', $like)
+                  ->orWhere('email', 'LIKE', $like)
+                  ->orWhereRaw('phone LIKE ?', [$like]);
             });
         }
 
-        $users = $query->latest()->paginate(config('performance.pagination.users', 20));
+        $users = $query->latest()->paginate(config('performance.pagination.users', 20))->withQueryString();
 
         return view('admin.users.index', compact('users'));
     }
