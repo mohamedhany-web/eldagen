@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+use App\Models\Exam;
 use App\Models\LessonVideoQuestion;
 use App\Models\LessonVideoQuestionAnswer;
 use Illuminate\Http\Request;
@@ -183,7 +184,18 @@ class MyCourseController extends Controller
         }
 
         $allowFlexibleSubmission = $lesson->allowsFlexibleSubmission();
-        return view('student.my-courses.lesson-viewer', compact('course', 'lesson', 'videoCheckpoints', 'savedWatchTime', 'allowFlexibleSubmission'));
+
+        $lessonExams = Exam::query()
+            ->where('advanced_course_id', $course->id)
+            ->where('course_lesson_id', $lesson->id)
+            ->available()
+            ->orderBy('created_at', 'desc')
+            ->get();
+        $lessonExams->each(function (Exam $exam) use ($user) {
+            $exam->user_can_attempt = $exam->canAttempt($user->id);
+        });
+
+        return view('student.my-courses.lesson-viewer', compact('course', 'lesson', 'videoCheckpoints', 'savedWatchTime', 'allowFlexibleSubmission', 'lessonExams'));
     }
 
     /**

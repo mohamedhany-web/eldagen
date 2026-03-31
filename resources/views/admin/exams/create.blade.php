@@ -60,7 +60,11 @@
                                     <option value="">اختر الكورس</option>
                                     @foreach($courses as $course)
                                         <option value="{{ $course->id }}" {{ (old('advanced_course_id', $selectedCourse) == $course->id) ? 'selected' : '' }}>
-                                            {{ $course->title }} - {{ $course->academicSubject->name ?? 'غير محدد' }}
+                                            {{ $course->title }}
+                                            @if($course->academicYear)
+                                                — {{ $course->academicYear->name }}
+                                            @endif
+                                            — {{ $course->academicSubject->name ?? 'مادة غير محددة' }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -71,11 +75,12 @@
 
                             <div>
                                 <label for="course_lesson_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    الدرس (اختياري)
+                                    الدرس المرتبط (اختياري)
                                 </label>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">عند اختيار درس، يظهر للطالب في مشغّل الدرس زر سريع «دخول الامتحان» يفتح صفحة الامتحان مباشرة.</p>
                                 <select name="course_lesson_id" id="course_lesson_id"
                                         class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
-                                    <option value="">امتحان عام للكورس</option>
+                                    <option value="">امتحان عام للكورس (بدون ربط بدرس)</option>
                                     @foreach($lessons as $lesson)
                                         <option value="{{ $lesson->id }}" {{ old('course_lesson_id') == $lesson->id ? 'selected' : '' }}>
                                             {{ $lesson->title }}
@@ -263,6 +268,14 @@
                                            class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500">
                                     <span class="mr-2 text-sm text-gray-700 dark:text-gray-300">امتحان نشط</span>
                                 </label>
+
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="is_published" value="1"
+                                           {{ old('is_published', true) ? 'checked' : '' }}
+                                           class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500">
+                                    <span class="mr-2 text-sm text-gray-700 dark:text-gray-300">نشر الامتحان للطلاب</span>
+                                </label>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 -mt-2 mr-6">بدون النشر لا يظهر الامتحان في قائمة الطالب ولا زر الدخول من صفحة الدرس.</p>
                             </div>
                         </div>
                     </div>
@@ -285,7 +298,7 @@
                             <ul class="mt-2 text-sm text-blue-700 dark:text-blue-300 space-y-1">
                                 <li>• بعد الإنشاء ستتمكن من إضافة الأسئلة</li>
                                 <li>• يمكن اختيار أسئلة من البنك أو إنشاء جديدة</li>
-                                <li>• تأكد من اختبار الامتحان قبل النشر</li>
+                                <li>• فعّل «نشر الامتحان للطلاب» حتى يظهر زر الدخول من الدرس وفي قائمة الامتحانات</li>
                             </ul>
                         </div>
                     </div>

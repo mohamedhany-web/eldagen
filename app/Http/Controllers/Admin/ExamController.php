@@ -64,7 +64,7 @@ class ExamController extends Controller
      */
     public function create(Request $request)
     {
-        $courses = AdvancedCourse::active()->with(['academicSubject'])->get();
+        $courses = AdvancedCourse::active()->with(['academicSubject', 'academicYear'])->get();
         $selectedCourse = $request->get('course_id');
         $lessons = $selectedCourse ? CourseLesson::where('advanced_course_id', $selectedCourse)->active()->get() : collect();
 
@@ -123,6 +123,8 @@ class ExamController extends Controller
             $data[$field] = $request->has($field);
         }
 
+        $data['is_published'] = $request->has('is_published');
+
         // إضافة المستخدم الحالي كمنشئ للامتحان
         $data['created_by'] = auth()->id();
 
@@ -172,7 +174,7 @@ class ExamController extends Controller
      */
     public function edit(Exam $exam)
     {
-        $courses = AdvancedCourse::active()->with(['academicSubject'])->get();
+        $courses = AdvancedCourse::active()->with(['academicSubject', 'academicYear'])->get();
         $lessons = CourseLesson::where('advanced_course_id', $exam->advanced_course_id)->active()->get();
 
         return view('admin.exams.edit', compact('exam', 'courses', 'lessons'));

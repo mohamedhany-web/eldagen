@@ -65,8 +65,11 @@
                                 @foreach($courses as $course)
                                     <option value="{{ $course->id }}" {{ old('advanced_course_id', $exam->advanced_course_id) == $course->id ? 'selected' : '' }}>
                                         {{ $course->title }}
+                                        @if($course->academicYear)
+                                            — {{ $course->academicYear->name }}
+                                        @endif
                                         @if($course->academicSubject)
-                                            - {{ $course->academicSubject->name }}
+                                            — {{ $course->academicSubject->name }}
                                         @endif
                                     </option>
                                 @endforeach
@@ -79,11 +82,12 @@
                         <!-- اختيار الدرس (اختياري) -->
                         <div>
                             <label for="course_lesson_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                الدرس (اختياري)
+                                الدرس المرتبط (اختياري)
                             </label>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">ربط الامتحان بدرس يظهر للطالب زر «دخول الامتحان» في مشغّل ذلك الدرس.</p>
                             <select name="course_lesson_id" id="course_lesson_id"
                                     class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
-                                <option value="">اختر الدرس (اختياري)</option>
+                                <option value="">امتحان عام للكورس (بدون ربط بدرس)</option>
                                 @foreach($lessons as $lesson)
                                     <option value="{{ $lesson->id }}" {{ old('course_lesson_id', $exam->course_lesson_id) == $lesson->id ? 'selected' : '' }}>
                                         {{ $lesson->title }}

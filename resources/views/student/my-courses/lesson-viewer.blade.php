@@ -60,6 +60,20 @@
         </div>
     @endif
 
+    @if(isset($lessonExams) && $lessonExams->isNotEmpty())
+        <div class="flex-shrink-0 bg-gray-800 text-white px-4 py-2 flex flex-wrap items-center gap-2 @if($lessonAttachments && count($lessonAttachments) > 0) border-t border-gray-700/60 @endif">
+            <span class="text-xs text-amber-400 whitespace-nowrap"><i class="fas fa-clipboard-check ml-1"></i> امتحان الدرس:</span>
+            @foreach($lessonExams as $exam)
+                <a href="{{ route('student.exams.show', $exam) }}" target="_top" rel="noopener"
+                   class="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium truncate max-w-[220px] {{ ($exam->user_can_attempt ?? true) ? 'bg-amber-600 hover:bg-amber-500 text-white' : 'bg-gray-600/80 text-gray-200 hover:bg-gray-600' }}"
+                   title="{{ $exam->title }}{{ !($exam->user_can_attempt ?? true) ? ' — لا توجد محاولات متاحة' : '' }}">
+                    <i class="fas fa-pen-alt flex-shrink-0"></i>
+                    <span class="truncate">دخول: {{ Str::limit($exam->title, 22) }}</span>
+                </a>
+            @endforeach
+        </div>
+    @endif
+
     @if(session('success'))
     <div class="flex-shrink-0 bg-green-700 text-white px-4 py-2 text-center text-sm" role="alert">
         <i class="fas fa-check-circle ml-1"></i>
