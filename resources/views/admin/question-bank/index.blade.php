@@ -126,6 +126,10 @@
                         <div class="flex items-start justify-between">
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center gap-3 mb-2">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200">
+                                        #{{ ($questions->firstItem() ?? 1) + $loop->index }}
+                                    </span>
+
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                                         @if($question->type == 'multiple_choice') bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200
                                         @elseif($question->type == 'true_false') bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
