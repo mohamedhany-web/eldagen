@@ -127,7 +127,7 @@
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center gap-3 mb-2">
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200">
-                                        #{{ ($questions->firstItem() ?? 1) + $loop->index }}
+                                        #{{ $questions->total() - (($questions->firstItem() ?? 1) + $loop->index) + 1 }}
                                     </span>
 
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
